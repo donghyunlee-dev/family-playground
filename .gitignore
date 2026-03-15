@@ -1,1 +1,11 @@
 node_modules/
+.turbo/
+apps/web/.next/
+apps/web/.env.local
+*.tsbuildinfo
+apps/**/.turbo/
+packages/**/.turbo/
+apps/**/node_modules/
+packages/**/node_modules/
+supabase/.branches/
+supabase/.temp/

@@ -417,6 +417,59 @@ Update:
 
 ---
 
+# Delivery Workflow
+
+Agents must execute work in documented phases.
+
+Before starting implementation:
+
+- read the relevant existing specs in `docs/specs`
+- identify the current phase and scope
+- update the phase documents before writing production code
+
+Phase folders must be created in `docs/specs` using this format:
+
+```
+01-platform-setup/
+02-core-platform/
+03-realtime-system/
+04-first-games/
+05-scoring-system/
+06-platform-polish/
+```
+
+Each phase folder must contain:
+
+- `plan.md`
+- `spec.md`
+- `tasks.md`
+
+Document rules:
+
+- `plan.md` must describe the phase goal, implementation order, dependencies, verification approach, and exit criteria
+- `spec.md` must describe the functional and technical requirements for that phase based on the source specs
+- `tasks.md` must track actionable tasks with status updates and final results
+
+Execution rules:
+
+- implementation must follow the phase order unless an earlier phase requires correction
+- while work is in progress, the relevant phase documents must be updated to reflect the current state
+- tests must be run for each completed task or feature slice whenever applicable
+- a phase is complete only after implementation, verification, and documentation are all complete
+- after verification completes, write the result summary into the phase documents
+- after a completed unit of work, create a Git commit and push it to the remote without waiting for extra approval
+- platform foundations must be completed before expanding the number of games
+- prioritize authentication, family access control, session persistence, room lifecycle stability, and score persistence before adding more game content
+
+Completion policy:
+
+- do not mark work complete based only on code changes
+- completion requires passing tests or explicit verification evidence when automated tests are unavailable
+- if verification cannot be completed, document the blocker and keep the phase open
+- continue this process until the documented specs are fully implemented
+
+---
+
 # Final Rule
 
 Agents must prioritize:
@@ -428,6 +481,4 @@ modularity
 clarity
 
 Avoid over-engineering.
-
-
 

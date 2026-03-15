@@ -1,5 +1,21 @@
 {
-	"devDependencies": {
-		"supabase": "^2.78.1"
-	}
+  "name": "family-playground",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "supabase": "^2.78.1",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.2"
+  }
 }

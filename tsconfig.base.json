@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@family-playground/types": ["packages/types/src/index.ts"],
+      "@family-playground/game-engine": ["packages/game-engine/src/index.ts"],
+      "@family-playground/ui": ["packages/ui/src/index.ts"],
+      "@family-playground/supabase-client": ["packages/supabase-client/src/index.ts"],
+      "@family-playground/game-memory-card": ["packages/game-memory-card/src/index.ts"],
+      "@family-playground/game-word-chain": ["packages/game-word-chain/src/index.ts"],
+      "@family-playground/game-ladder": ["packages/game-ladder/src/index.ts"],
+      "@family-playground/game-spot-diff": ["packages/game-spot-diff/src/index.ts"],
+      "@family-playground/game-hidden-object": ["packages/game-hidden-object/src/index.ts"],
+      "@family-playground/game-yut": ["packages/game-yut/src/index.ts"]
+    }
+  }
+}

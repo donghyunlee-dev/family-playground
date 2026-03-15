@@ -1,0 +1,1 @@
+export const ladderGameId = "ladder";

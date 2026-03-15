@@ -1,0 +1,1 @@
+-- Add local seed data here when the initial schema is in place.

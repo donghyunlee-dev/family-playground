@@ -47,6 +47,12 @@ Room properties:
 - status
 - created_at
 
+Current operating rules:
+
+- each game may have only one active room at a time
+- if a room already exists for that game, other users must join it instead of creating another one
+- a user who is already inside an active room must stay in that room until leaving it
+
 ---
 
 ## Room Capacity
@@ -77,6 +83,7 @@ A player can join a room if:
 
 - room status = waiting
 - room capacity not exceeded
+- the player is not already inside another active room
 
 Process:
 
@@ -100,6 +107,12 @@ host must transfer to another player.
 If no players remain:
 
 room is automatically closed.
+
+If players remain after a finished session:
+
+- the room stays alive
+- the room returns to waiting state
+- the same room may start another session later
 
 ---
 
@@ -127,7 +140,9 @@ When the game finishes:
 
 1. game result calculated
 2. scores stored
-3. room status → finished
+3. session is closed
+4. if players remain, room status → waiting
+5. if no players remain, room status → finished
 4. broadcast game_end event
 
 ---
