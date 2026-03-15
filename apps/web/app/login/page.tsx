@@ -42,31 +42,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-10">
-      <div className="mx-auto grid max-w-4xl gap-5">
-        <section className="rounded-[2.5rem] border border-[#ffdca8] bg-[#fffdf9] p-8 text-[#26324b] shadow-[0_28px_90px_rgba(245,158,11,0.14)] md:p-10">
+    <main className="min-h-screen px-4 py-4 text-slate-950 md:px-6 md:py-8">
+      <div className="mx-auto grid max-w-3xl gap-4 md:gap-5">
+        <section className="rounded-[2rem] border border-[#ffdca8] bg-[#fffdf9] p-5 text-[#26324b] shadow-[0_20px_52px_rgba(245,158,11,0.12)] md:rounded-[2.5rem] md:p-10 md:shadow-[0_28px_90px_rgba(245,158,11,0.14)]">
           <p className="text-sm font-medium text-[#f97316]">로그인</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-balance">
-            가족 구글 계정으로
-            <br />
-            간단하게 들어오기
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-balance md:mt-4 md:text-4xl">
+            가족 계정으로
+            <br className="md:hidden" />
+            로그인
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-[#4d5c7a]">
-            이 화면에서는 로그인만 성공하면 됩니다. 복잡한 메뉴 없이 가족
-            계정으로 들어오고, 그다음에 로비와 방 화면으로 이동하게 구성하고
-            있습니다.
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#4d5c7a] md:mt-5 md:text-base md:leading-8">
+            로그인만 성공하면 바로 로비로 이동합니다.
           </p>
         </section>
 
-        <section className="rounded-[2.3rem] border border-[#ffdca8] bg-white/90 p-6 shadow-[0_24px_70px_rgba(245,158,11,0.1)]">
-          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#26324b]">
+        <section className="rounded-[1.8rem] border border-[#ffdca8] bg-white/90 p-4 shadow-[0_18px_40px_rgba(245,158,11,0.08)] md:rounded-[2.3rem] md:p-6 md:shadow-[0_24px_70px_rgba(245,158,11,0.1)]">
+          <h2 className="text-xl font-semibold tracking-[-0.03em] text-[#26324b] md:text-2xl">
             구글 로그인
           </h2>
-          <p className="mt-3 text-sm leading-7 text-[#5f6784]">
-            아래 버튼을 누르면 구글 로그인으로 이동합니다. 로그인 성공 후에는
-            다시 이 사이트로 돌아와 가족용 로비로 들어갑니다.
+          <p className="mt-2 text-sm leading-6 text-[#5f6784] md:mt-3 md:leading-7">
+            버튼을 누르면 구글 로그인으로 이동합니다.
           </p>
-          <div className="mt-6">
+          <div className="mt-4 md:mt-6">
             <GoogleSignInButton />
           </div>
           {error ? (
@@ -79,19 +76,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           ) : null}
         </section>
 
-        <section className="rounded-[2.1rem] border border-dashed border-[#fbbf24] bg-[#fff9ec]/92 p-6">
-          <h2 className="text-xl font-semibold tracking-[-0.03em] text-[#26324b]">
-            로그인 전에 맞춰둘 것
+        <section className="rounded-[1.8rem] border border-dashed border-[#fbbf24] bg-[#fff9ec]/92 p-4 md:rounded-[2.1rem] md:p-6">
+          <h2 className="text-lg font-semibold tracking-[-0.03em] text-[#26324b] md:text-xl">
+            확인할 것
           </h2>
-          <div className="mt-4 grid gap-3 text-sm leading-7 text-[#5f6784]">
-            <div className="rounded-[1.4rem] bg-white px-4 py-3">
-              1. Supabase에서 Google 로그인이 켜져 있어야 합니다.
+          <div className="mt-3 grid gap-2 text-sm leading-6 text-[#5f6784] md:mt-4 md:gap-3 md:leading-7">
+            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
+              1. Google 로그인이 켜져 있어야 합니다.
             </div>
-            <div className="rounded-[1.4rem] bg-white px-4 py-3">
-              2. 구글 Redirect URL과 현재 사이트 주소가 서로 맞아야 합니다.
+            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
+              2. Redirect URL이 맞아야 합니다.
             </div>
-            <div className="rounded-[1.4rem] bg-white px-4 py-3">
-              3. 로그인 후 가족 계정 확인이 통과하면 바로 로비로 이동합니다.
+            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
+              3. 통과하면 바로 로비로 이동합니다.
             </div>
           </div>
         </section>

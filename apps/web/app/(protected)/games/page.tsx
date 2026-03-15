@@ -18,25 +18,24 @@ export default async function GamesPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="overflow-hidden rounded-[2.4rem] border border-[#ffdca8] bg-[#fffdf9] p-6 text-[#26324b] shadow-[0_26px_80px_rgba(245,158,11,0.14)] md:p-8">
+      <section className="overflow-hidden rounded-[1.8rem] border border-[#ffdca8] bg-[#fffdf9] p-4 text-[#26324b] shadow-[0_18px_42px_rgba(245,158,11,0.1)] md:rounded-[2.4rem] md:p-8 md:shadow-[0_26px_80px_rgba(245,158,11,0.14)]">
         <p className="text-xs tracking-[0.24em] text-[#f97316]">
           게임 목록
         </p>
-        <h2 className="mt-3 max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-balance">
-          게임이 준비되면 여기서 선택하고 같은 방으로 모일 수 있습니다.
+        <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-[-0.04em] text-balance md:mt-3 md:text-4xl">
+          게임 선택
         </h2>
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-[#4d5c7a] md:text-base">
-          지금은 플랫폼 기반을 먼저 정리하는 단계라 실제로 플레이 가능한 게임은
-          아직 없습니다. 이후 게임이 붙으면 방 생성과 참가 흐름이 그대로 연결됩니다.
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#4d5c7a] md:mt-4 md:text-base md:leading-7">
+          준비된 게임이 생기면 여기서 같은 방으로 모입니다.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <div className="rounded-full bg-white/72 px-4 py-2 text-sm text-[#34415f]">
+        <div className="mt-4 grid grid-cols-1 gap-2 md:mt-6 md:flex md:flex-wrap md:gap-3">
+          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
             등록된 게임 {games.length}개
           </div>
-          <div className="rounded-full bg-white/72 px-4 py-2 text-sm text-[#34415f]">
+          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
             플레이 가능 {launchReadyGames.length}개
           </div>
-          <div className="rounded-full bg-white/72 px-4 py-2 text-sm text-[#34415f]">
+          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
             {userActiveRoom ? "현재 참가 중인 방이 있습니다" : "아직 참가 중인 방이 없습니다"}
           </div>
         </div>
@@ -44,8 +43,8 @@ export default async function GamesPage() {
 
       <SectionCard
         eyebrow="상태"
-        title="현재는 게임 준비 단계입니다"
-        description="실제 게임 화면이 아직 연결되지 않았기 때문에 방 생성 버튼 대신 준비 상태를 먼저 보여줍니다."
+        title="지금은 준비 단계"
+        description="실제 플레이 가능한 게임은 아직 없습니다."
       >
         {launchReadyGames.length === 0 ? (
           <EmptyState
@@ -58,9 +57,9 @@ export default async function GamesPage() {
       <SectionCard
         eyebrow="예정"
         title="준비 중인 게임"
-        description="게임 패키지는 등록되어 있지만 실제 플레이 화면이 아직 연결되지 않았습니다."
+        description="게임 패키지는 등록되어 있지만 아직 실행되지는 않습니다."
       >
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {games.map((game) => {
             const isPlayable = playableGameKeys.has(game.gameKey);
 

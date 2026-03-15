@@ -7,23 +7,23 @@ export default async function ProfilePage() {
   const history = await getRecentScoreHistory(profile.id);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid gap-4 md:gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <SectionCard
         eyebrow="프로필"
         title={profile.displayName}
-        description="가족 계정 정보와 현재 점수, 플레이 횟수를 한 번에 확인하는 화면입니다."
+        description="내 계정 정보"
       >
         <div className="grid gap-3 text-sm text-[#5f6784]">
-          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
             이메일: {profile.email}
           </div>
-          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
             가족 역할: {member.role === "admin" ? "관리자" : "구성원"}
           </div>
-          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
             누적 점수: {profile.totalScore}
           </div>
-          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
             플레이 횟수: {profile.gamesPlayed}
           </div>
         </div>
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
       <SectionCard
         eyebrow="기록"
         title="최근 점수 기록"
-        description="게임이 끝나고 점수가 반영되면 최근 기록이 시간순으로 쌓입니다."
+        description="최근 활동"
       >
         {history.length === 0 ? (
           <EmptyState
@@ -44,7 +44,7 @@ export default async function ProfilePage() {
             {history.map((entry) => (
               <article
                 key={entry.id}
-                className="rounded-[1.7rem] bg-[#fff9ec] px-4 py-3 text-sm text-[#5f6784]"
+                className="rounded-[1.3rem] bg-[#fff9ec] px-4 py-3 text-sm text-[#5f6784] md:rounded-[1.7rem]"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>

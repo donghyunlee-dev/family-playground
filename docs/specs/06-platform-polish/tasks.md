@@ -20,5 +20,7 @@ In Progress
 - Adjusted buttons and navigation styles to avoid low-contrast hover states.
 - Removed decorative gradients from the main UI and simplified the lobby around the game list and open rooms.
 - Moved logout to the protected header top bar so account switching is easy during login testing.
+- Reworked the main routes for phone-first sizing with shorter copy, tighter cards, and larger touch targets.
+- Adjusted protected navigation and game/room controls so they remain usable on mobile and tablet widths.
 - Verified `pnpm --filter @family-playground/web lint` and `pnpm --filter @family-playground/web typecheck`.
 - Verified the local preview server responds on `http://127.0.0.1:3001/login`.

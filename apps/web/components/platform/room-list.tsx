@@ -21,7 +21,7 @@ export function RoomList({ rooms }: RoomListProps) {
       {rooms.map((room) => (
         <article
           key={room.id}
-          className="rounded-[1.9rem] border border-[#ffdca8] bg-[#fffdf9] p-5 shadow-[0_18px_50px_rgba(245,158,11,0.1)]"
+          className="rounded-[1.5rem] border border-[#ffdca8] bg-[#fffdf9] p-4 shadow-[0_14px_30px_rgba(245,158,11,0.08)] md:rounded-[1.9rem] md:p-5 md:shadow-[0_18px_50px_rgba(245,158,11,0.1)]"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -32,15 +32,15 @@ export function RoomList({ rooms }: RoomListProps) {
                     ? "진행 중"
                     : "종료됨"}
               </p>
-              <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[#26324b]">
+              <h3 className="mt-1.5 text-lg font-semibold tracking-[-0.02em] text-[#26324b] md:mt-2 md:text-xl">
                 {room.gameTitle}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-[#5f6784]">
+              <p className="mt-1.5 text-sm leading-6 text-[#5f6784] md:mt-2">
                 방장: {room.hostName} · 인원: {room.players.length}/{room.maxPlayers}
               </p>
             </div>
             <Link
-              className="inline-flex w-fit rounded-full border border-[#ffd58c] bg-[#ffd666] px-4 py-2 text-sm font-medium text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44]"
+              className="inline-flex w-full justify-center rounded-full border border-[#ffd58c] bg-[#ffd666] px-4 py-2.5 text-sm font-medium text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44] md:w-fit md:py-2"
               href={`/room/${room.id}`}
             >
               방 열기
