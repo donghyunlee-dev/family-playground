@@ -1,35 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { fallbackGames } from "@/lib/mock";
 import { buildSignedOutLoginHref } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureFamilyAccess } from "@/lib/platform";
 
 export const dynamic = "force-dynamic";
-
-const featuredHighlights = [
-  "One shared room per game, so everyone joins the same live space.",
-  "Persistent family profiles, rankings, and session history.",
-  "Platform-first architecture that lets new games plug in cleanly.",
-];
-
-const editorialShelves = [
-  {
-    eyebrow: "Now ready",
-    title: "Shared game rooms",
-    body: "A family member opens the room once, everyone else joins from the catalog. No duplicate lobbies, no guessing which room is the right one.",
-  },
-  {
-    eyebrow: "Built in",
-    title: "Google sign-in + family access",
-    body: "Authentication, profile bootstrap, and protected navigation all sit inside the platform shell instead of inside each game.",
-  },
-  {
-    eyebrow: "Next up",
-    title: "Reusable score pipeline",
-    body: "Games will award platform points through a single results flow so future games do not reinvent ranking logic.",
-  },
-];
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -48,156 +23,75 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,_#eaf2ff_0%,_#f7fbff_38%,_#f6f1e8_100%)] px-5 py-6 text-slate-950 md:px-8 md:py-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <section className="rounded-[2.5rem] border border-white/60 bg-white/80 p-4 shadow-[0_30px_90px_rgba(43,78,135,0.12)] backdrop-blur md:p-6">
-          <div className="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-            <div className="rounded-[2rem] bg-[linear-gradient(135deg,_#0f172a_0%,_#1d4ed8_45%,_#38bdf8_100%)] p-7 text-white md:p-10">
-              <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.32em] text-sky-100/90">
-                <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1">
-                  Family Playground
-                </span>
-                <span>Editorial Pick</span>
-              </div>
-              <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.04em] text-balance md:text-6xl">
-                Your family’s private App Store for game nights.
+    <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-10">
+      <div className="mx-auto grid max-w-5xl gap-5">
+        <section className="overflow-hidden rounded-[2.7rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_#fff6dd_0%,_#ffd7e2_48%,_#daf2ff_100%)] px-7 py-10 text-[#26324b] shadow-[0_30px_90px_rgba(245,158,11,0.14)] md:px-10 md:py-12">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <p className="text-sm font-medium text-[#f97316]">가족 전용 게임 놀이터</p>
+              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-balance md:text-5xl">
+                부모와 아이가 함께 노는
+                <br />
+                패밀리 플레이그라운드
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-sky-50/90 md:text-lg">
-                One shared catalog, one room per game, one ranking system. The
-                platform handles login, rooms, profiles, and scoring so each new
-                game can plug into a stable system.
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[#485877]">
+                복잡한 설명보다 바로 알아보기 쉬운 가족용 게임 공간을 만들고
+                있습니다. 지금은 로그인과 방, 점수판 같은 공통 기능을 먼저
+                준비하는 단계입니다.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-50"
+                  className="rounded-full border border-[#ffd58c] bg-[#ffd666] px-5 py-3 text-sm font-semibold text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44]"
                   href="/login"
                 >
-                  Continue with Google
+                  구글 계정으로 시작하기
                 </Link>
-                <Link
-                  className="rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/16"
-                  href="/games"
-                >
-                  Open catalog
-                </Link>
-              </div>
-              <div className="mt-8 grid gap-3 md:grid-cols-3">
-                {featuredHighlights.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.5rem] border border-white/15 bg-white/8 px-4 py-4 text-sm leading-6 text-sky-50/88"
-                  >
-                    {item}
-                  </div>
-                ))}
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <article className="rounded-[2rem] bg-[linear-gradient(180deg,_#fffefb_0%,_#eef6ff_100%)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-                <p className="text-xs uppercase tracking-[0.28em] text-sky-700">
-                  Featured collection
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-[2rem] bg-white/78 p-5 shadow-[0_18px_40px_rgba(255,143,171,0.18)]">
+                <p className="text-sm text-[#f97316]">오늘의 상태</p>
+                <p className="mt-2 text-2xl font-semibold text-[#26324b]">
+                  아직 게임은 연결되지 않았어요
                 </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
-                  Launch-ready platform pieces
-                </h2>
-                <div className="mt-5 space-y-3">
-                  {editorialShelves.map((item) => (
-                    <div
-                      key={item.title}
-                      className="rounded-[1.5rem] border border-slate-900/6 bg-white/90 px-4 py-4"
-                    >
-                      <p className="text-[0.7rem] uppercase tracking-[0.28em] text-sky-700">
-                        {item.eyebrow}
-                      </p>
-                      <h3 className="mt-2 text-xl font-semibold text-slate-950">
-                        {item.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        {item.body}
-                      </p>
-                    </div>
-                  ))}
+                <p className="mt-3 text-sm leading-7 text-[#5f6784]">
+                  빈 공간이 보이는 것이 정상입니다. 게임을 붙이기 전에 로그인,
+                  가족 계정 확인, 방 이동부터 안정적으로 맞추고 있습니다.
+                </p>
+              </div>
+              <div className="rounded-[2rem] bg-[#fff8ea]/92 p-5 shadow-[0_18px_40px_rgba(144,219,244,0.16)]">
+                <p className="text-sm text-[#f97316]">준비 순서</p>
+                <div className="mt-3 grid gap-3 text-sm text-[#4f5d7c]">
+                  <div className="rounded-[1.4rem] bg-white px-4 py-3">1. 가족 로그인</div>
+                  <div className="rounded-[1.4rem] bg-white px-4 py-3">2. 방 생성과 참가</div>
+                  <div className="rounded-[1.4rem] bg-white px-4 py-3">3. 실제 게임 연결</div>
                 </div>
-              </article>
-
-              <article className="rounded-[2rem] bg-slate-950 p-6 text-white">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-sky-200">
-                      In rotation
-                    </p>
-                    <h2 className="mt-2 text-2xl font-semibold">
-                      Early game lineup
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-sky-100">
-                    2 enabled
-                  </span>
-                </div>
-                <div className="mt-5 grid gap-3">
-                  {fallbackGames.slice(0, 4).map((game, index) => (
-                    <div
-                      key={game.id}
-                      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3"
-                    >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,_#60a5fa_0%,_#22d3ee_100%)] text-sm font-semibold text-slate-950">
-                        0{index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-white">{game.title}</p>
-                        <p className="text-sm text-sky-100/75">
-                          {game.minPlayers}-{game.maxPlayers} players
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-sky-100">
-                        {game.enabled ? "Open" : "Soon"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </article>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-3">
-          <article className="rounded-[2rem] border border-white/60 bg-white/78 p-6 shadow-[0_16px_50px_rgba(59,130,246,0.08)]">
-            <p className="text-xs uppercase tracking-[0.26em] text-sky-700">
-              Accounts
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-              Google in, platform profile out
+        <section className="grid gap-5 md:grid-cols-2">
+          <article className="rounded-[2.2rem] border border-[#ffdca8] bg-white/90 p-6 shadow-[0_20px_60px_rgba(245,158,11,0.1)]">
+            <p className="text-xs tracking-[0.24em] text-[#f97316]">지금 보이는 것</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[#26324b]">
+              게임이 없어도 이해되는 화면으로 바꾸는 중입니다
             </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Sign-in, profile bootstrap, and session restore all happen once at
-              the platform layer and stay consistent for every future game.
+            <p className="mt-3 text-sm leading-7 text-[#5f6784]">
+              아이가 봐도 바로 이해할 수 있도록 큰 제목, 색감 있는 카드, 간단한
+              문장 위주로 정리하고 있습니다.
             </p>
           </article>
 
-          <article className="rounded-[2rem] border border-white/60 bg-white/78 p-6 shadow-[0_16px_50px_rgba(59,130,246,0.08)]">
-            <p className="text-xs uppercase tracking-[0.26em] text-sky-700">
-              Rooms
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-              One active room per game
+          <article className="rounded-[2.2rem] border border-dashed border-[#fbbf24] bg-[#fff9ec]/90 p-6">
+            <p className="text-xs tracking-[0.24em] text-[#f97316]">다음 단계</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[#26324b]">
+              메모리 카드와 끝말잇기가 들어올 자리
             </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              The catalog shows when a room is already live, so everyone heads
-              to the same space instead of splitting into duplicates.
-            </p>
-          </article>
-
-          <article className="rounded-[2rem] border border-white/60 bg-white/78 p-6 shadow-[0_16px_50px_rgba(59,130,246,0.08)]">
-            <p className="text-xs uppercase tracking-[0.26em] text-sky-700">
-              Expansion
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-              Add games without rewriting the shell
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              `packages/game-*` can stay focused on rules and UI because auth,
-              rooms, persistence, and rankings already live in the core platform.
+            <p className="mt-3 text-sm leading-7 text-[#5f6784]">
+              게임 화면은 아직 비어 있어야 맞습니다. 플랫폼 정리가 끝나면 게임을
+              하나씩 추가해서 같은 구조 안에서 돌게 만들 예정입니다.
             </p>
           </article>
         </section>

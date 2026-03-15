@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7fbff;
-  --foreground: #0f172a;
+  --background: #fff8ef;
+  --foreground: #27304a;
 }
 
 * {
@@ -16,11 +16,12 @@ html {
 body {
   margin: 0;
   color: var(--foreground);
-  font-family: var(--font-body), serif;
+  font-family: var(--font-body), sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 28%),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 26%),
-    linear-gradient(180deg, #eff6ff 0%, #f8fbff 42%, #f6f1e8 100%);
+    radial-gradient(circle at top left, rgba(255, 183, 77, 0.24), transparent 24%),
+    radial-gradient(circle at top right, rgba(129, 212, 250, 0.22), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(174, 213, 129, 0.2), transparent 24%),
+    linear-gradient(180deg, #fff4df 0%, #fffaf1 42%, #f4fbff 100%);
 }
 
 h1,
@@ -30,6 +31,7 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading), sans-serif;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -38,10 +40,14 @@ a {
 }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.24);
+  background: rgba(255, 193, 7, 0.32);
 }
 
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
 }

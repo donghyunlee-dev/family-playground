@@ -8,23 +8,24 @@ export const dynamic = "force-dynamic";
 
 const errorMessages: Record<string, string> = {
   "not-allowed":
-    "This Google account is not on the family allowlist yet. Add the email to family_members before retrying.",
+    "이 구글 계정은 아직 가족 계정 목록에 없습니다. family_members 테이블에 이메일을 추가한 뒤 다시 시도해 주세요.",
   "email-claimed":
-    "This family email is already linked to another user id. Check the allowlist and try again.",
-  "missing-email": "The authenticated account did not provide an email address.",
-  "missing-code": "Google sign-in did not return an authorization code.",
+    "이 가족 이메일은 이미 다른 사용자와 연결되어 있습니다. family_members 설정을 확인해 주세요.",
+  "missing-email": "로그인한 계정에서 이메일 정보를 가져오지 못했습니다.",
+  "missing-code": "구글 로그인 후 인증 코드가 전달되지 않았습니다.",
   "auth-callback-failed":
-    "Supabase could not exchange the Google callback for a session.",
+    "Supabase가 구글 로그인 콜백을 세션으로 바꾸지 못했습니다. 구글 OAuth 설정을 다시 확인해야 합니다.",
 };
 
 interface LoginPageProps {
   searchParams: Promise<{
     error?: string;
+    detail?: string;
   }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error } = await searchParams;
+  const { error, detail } = await searchParams;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -41,65 +42,57 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#e8f1ff_0%,_#f8fbff_40%,_#f6f1e8_100%)] px-5 py-6 text-slate-950 md:px-8 md:py-8">
-      <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-[2.25rem] bg-[linear-gradient(135deg,_#0f172a_0%,_#1d4ed8_48%,_#22d3ee_100%)] p-7 text-white shadow-[0_30px_90px_rgba(37,99,235,0.18)] md:p-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-sky-100/90">
-            Private Access
-          </p>
-          <h1 className="mt-5 max-w-2xl text-5xl font-semibold tracking-[-0.04em] text-balance">
-            Sign in once and keep the family hub ready.
+    <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-10">
+      <div className="mx-auto grid max-w-4xl gap-5">
+        <section className="rounded-[2.5rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_#fff5d8_0%,_#ffdbe5_50%,_#d9f2ff_100%)] p-8 text-[#26324b] shadow-[0_28px_90px_rgba(245,158,11,0.14)] md:p-10">
+          <p className="text-sm font-medium text-[#f97316]">로그인</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-balance">
+            가족 구글 계정으로
+            <br />
+            간단하게 들어오기
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-8 text-sky-50/88">
-            Google OAuth opens the platform, the family access rule confirms the
-            account, and the profile row is restored so rooms and rankings stay
-            attached to the same person across sessions.
+          <p className="mt-5 max-w-2xl text-base leading-8 text-[#4d5c7a]">
+            이 화면에서는 로그인만 성공하면 됩니다. 복잡한 메뉴 없이 가족
+            계정으로 들어오고, 그다음에 로비와 방 화면으로 이동하게 구성하고
+            있습니다.
           </p>
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/8 px-4 py-4">
-              <p className="text-sm font-medium text-white">OAuth callback</p>
-              <p className="mt-2 text-sm leading-6 text-sky-50/75">
-                Supabase exchanges the Google code for a browser session.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/8 px-4 py-4">
-              <p className="text-sm font-medium text-white">Family access</p>
-              <p className="mt-2 text-sm leading-6 text-sky-50/75">
-                The account is matched to the family membership table.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/8 px-4 py-4">
-              <p className="text-sm font-medium text-white">Profile restore</p>
-              <p className="mt-2 text-sm leading-6 text-sky-50/75">
-                Display name, activity state, and ranking context are updated.
-              </p>
-            </div>
-          </div>
         </section>
 
-        <section className="rounded-[2.25rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-sky-700">
-            Continue
-          </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
-            Family Google account only
+        <section className="rounded-[2.3rem] border border-[#ffdca8] bg-white/90 p-6 shadow-[0_24px_70px_rgba(245,158,11,0.1)]">
+          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#26324b]">
+            구글 로그인
           </h2>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Use one of the family Google accounts you already connected to
-            Supabase. After login, the platform will send you to the lobby if
-            the account is allowed.
+          <p className="mt-3 text-sm leading-7 text-[#5f6784]">
+            아래 버튼을 누르면 구글 로그인으로 이동합니다. 로그인 성공 후에는
+            다시 이 사이트로 돌아와 가족용 로비로 들어갑니다.
           </p>
           <div className="mt-6">
             <GoogleSignInButton />
           </div>
           {error ? (
-            <div className="mt-4 rounded-[1.5rem] bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-900">
-              {errorMessages[error] ?? "Unable to continue sign-in."}
+            <div className="mt-4 rounded-[1.6rem] border border-[#fecdd3] bg-[#fff1f3] px-4 py-4 text-sm leading-6 text-[#9f1239]">
+              {errorMessages[error] ?? "로그인을 계속 진행할 수 없습니다."}
+              {detail ? (
+                <p className="mt-2 break-all text-xs text-[#881337]">{detail}</p>
+              ) : null}
             </div>
           ) : null}
-          <div className="mt-6 rounded-[1.5rem] bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600">
-            Session restore is enabled, so returning users should come back to
-            the protected app without repeating the full flow every time.
+        </section>
+
+        <section className="rounded-[2.1rem] border border-dashed border-[#fbbf24] bg-[#fff9ec]/92 p-6">
+          <h2 className="text-xl font-semibold tracking-[-0.03em] text-[#26324b]">
+            로그인 전에 맞춰둘 것
+          </h2>
+          <div className="mt-4 grid gap-3 text-sm leading-7 text-[#5f6784]">
+            <div className="rounded-[1.4rem] bg-white px-4 py-3">
+              1. Supabase에서 Google 로그인이 켜져 있어야 합니다.
+            </div>
+            <div className="rounded-[1.4rem] bg-white px-4 py-3">
+              2. 구글 Redirect URL과 현재 사이트 주소가 서로 맞아야 합니다.
+            </div>
+            <div className="rounded-[1.4rem] bg-white px-4 py-3">
+              3. 로그인 후 가족 계정 확인이 통과하면 바로 로비로 이동합니다.
+            </div>
           </div>
         </section>
       </div>

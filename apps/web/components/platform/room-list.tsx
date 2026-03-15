@@ -10,8 +10,8 @@ export function RoomList({ rooms }: RoomListProps) {
   if (rooms.length === 0) {
     return (
       <EmptyState
-        title="No active rooms"
-        description="Create a new room from the games page to start a waiting lobby for your family."
+        title="현재 열려 있는 방이 없습니다"
+        description="게임 페이지에서 방을 만들면 가족들이 같은 대기방으로 들어올 수 있습니다."
       />
     );
   }
@@ -21,26 +21,29 @@ export function RoomList({ rooms }: RoomListProps) {
       {rooms.map((room) => (
         <article
           key={room.id}
-          className="rounded-[1.8rem] border border-white/70 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
+          className="rounded-[1.9rem] border border-[#ffdca8] bg-[linear-gradient(180deg,_#ffffff_0%,_#fff7e9_100%)] p-5 shadow-[0_18px_50px_rgba(245,158,11,0.1)]"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-sky-700">
-                {room.status}
+              <p className="text-xs tracking-[0.22em] text-[#f97316]">
+                {room.status === "waiting"
+                  ? "대기 중"
+                  : room.status === "playing"
+                    ? "진행 중"
+                    : "종료됨"}
               </p>
-              <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-slate-950">
+              <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[#26324b]">
                 {room.gameTitle}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Host: {room.hostName} · Players: {room.players.length}/
-                {room.maxPlayers}
+              <p className="mt-2 text-sm leading-6 text-[#5f6784]">
+                방장: {room.hostName} · 인원: {room.players.length}/{room.maxPlayers}
               </p>
             </div>
             <Link
-              className="inline-flex w-fit rounded-full bg-slate-950 px-4 py-2 text-sm text-white transition hover:bg-blue-700"
+              className="inline-flex w-fit rounded-full border border-[#ffd58c] bg-[#ffd666] px-4 py-2 text-sm font-medium text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44]"
               href={`/room/${room.id}`}
             >
-              Open room
+              방 열기
             </Link>
           </div>
         </article>

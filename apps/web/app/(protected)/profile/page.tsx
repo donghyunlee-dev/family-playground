@@ -9,54 +9,54 @@ export default async function ProfilePage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <SectionCard
-        eyebrow="Profile"
+        eyebrow="프로필"
         title={profile.displayName}
-        description="Profile data is bootstrapped from Supabase Auth and matched to the family allowlist before protected routes are accessible."
+        description="가족 계정 정보와 현재 점수, 플레이 횟수를 한 번에 확인하는 화면입니다."
       >
-        <div className="grid gap-3 text-sm text-stone-700">
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            Email: {profile.email}
+        <div className="grid gap-3 text-sm text-[#5f6784]">
+          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+            이메일: {profile.email}
           </div>
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            Family role: {member.role}
+          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+            가족 역할: {member.role === "admin" ? "관리자" : "구성원"}
           </div>
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            Total score: {profile.totalScore}
+          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+            누적 점수: {profile.totalScore}
           </div>
-          <div className="rounded-2xl bg-stone-50 px-4 py-3">
-            Games played: {profile.gamesPlayed}
+          <div className="rounded-[1.6rem] bg-[#fff9ec] px-4 py-3">
+            플레이 횟수: {profile.gamesPlayed}
           </div>
         </div>
       </SectionCard>
 
       <SectionCard
-        eyebrow="History"
-        title="Recent score events"
-        description="Every platform point change should be stored as score history so family ranking remains auditable across games."
+        eyebrow="기록"
+        title="최근 점수 기록"
+        description="게임이 끝나고 점수가 반영되면 최근 기록이 시간순으로 쌓입니다."
       >
         {history.length === 0 ? (
           <EmptyState
-            title="No score history yet"
-            description="Once sessions finish and points are awarded, recent activity will appear here."
+            title="아직 점수 기록이 없습니다"
+            description="게임 세션이 끝나고 점수가 반영되면 최근 활동이 여기에 표시됩니다."
           />
         ) : (
           <div className="space-y-3">
             {history.map((entry) => (
               <article
                 key={entry.id}
-                className="rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-700"
+                className="rounded-[1.7rem] bg-[#fff9ec] px-4 py-3 text-sm text-[#5f6784]"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-medium text-stone-900">{entry.gameTitle}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-stone-500">
+                    <p className="font-medium text-[#26324b]">{entry.gameTitle}</p>
+                    <p className="mt-1 text-xs tracking-[0.16em] text-[#f97316]">
                       {entry.reason}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">{entry.scoreDelta}</p>
-                    <p className="text-xs text-stone-500">
-                      Total: {entry.runningTotal}
+                    <p className="font-semibold text-[#26324b]">{entry.scoreDelta}</p>
+                    <p className="text-xs text-[#6b728c]">
+                      현재 합계: {entry.runningTotal}
                     </p>
                   </div>
                 </div>

@@ -9,50 +9,51 @@ interface AppShellProps {
 }
 
 const navItems = [
-  { href: "/lobby", label: "Lobby" },
-  { href: "/games", label: "Games" },
-  { href: "/ranking", label: "Ranking" },
-  { href: "/profile", label: "Profile" },
+  { href: "/lobby", label: "로비" },
+  { href: "/games", label: "게임" },
+  { href: "/ranking", label: "랭킹" },
+  { href: "/profile", label: "프로필" },
 ];
 
 export function AppShell({ profile, children }: AppShellProps) {
   return (
     <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="rounded-[2.25rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <header className="rounded-[2.5rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_rgba(255,255,255,0.96)_0%,_rgba(255,243,222,0.98)_48%,_rgba(227,246,255,0.98)_100%)] p-6 shadow-[0_24px_70px_rgba(245,158,11,0.12)] backdrop-blur">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-sky-700">
-                Family Playground
+              <p className="text-xs tracking-[0.28em] text-[#f97316]">
+                패밀리 플레이그라운드
               </p>
               <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-                Hello, {profile.displayName}
+                {profile.displayName} 님, 오늘도 같이 놀아요
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-                A private catalog for your family. Rooms, rankings, and future
-                games all sit inside the same platform shell.
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-[#5f6784]">
+                부모와 아이가 한 화면에서 같이 즐길 수 있도록 만든 가족 게임
+                공간입니다. 지금은 로그인, 방, 점수판 같은 공통 기능을 먼저
+                정리하고 있습니다.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <StatPill label="Total Score" value={String(profile.totalScore)} />
-              <StatPill label="Games Played" value={String(profile.gamesPlayed)} />
+              <StatPill label="누적 점수" value={String(profile.totalScore)} />
+              <StatPill label="플레이 횟수" value={String(profile.gamesPlayed)} />
             </div>
           </div>
           <nav className="mt-6 flex flex-wrap gap-3">
             {navItems.map((item) => (
               <Link
                 key={item.href}
-                className="rounded-full border border-slate-900/8 bg-slate-100 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-950 hover:text-white"
+                className="rounded-full border border-[#ffd58c] bg-white px-4 py-2 text-sm font-medium text-[#34415f] transition hover:border-[#ffb84d] hover:bg-[#fff2cf] hover:text-[#1f2a44]"
                 href={item.href}
               >
                 {item.label}
               </Link>
             ))}
             <Link
-              className="rounded-full border border-slate-900/8 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-rose-600 hover:text-white"
+              className="rounded-full border border-[#fecdd3] bg-[#fff1f3] px-4 py-2 text-sm font-medium text-[#be123c] transition hover:bg-[#ffe4e6] hover:text-[#9f1239]"
               href="/auth/sign-out"
             >
-              Sign out
+              로그아웃
             </Link>
           </nav>
         </header>

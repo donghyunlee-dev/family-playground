@@ -3,16 +3,21 @@ import type { ReactNode } from "react";
 
 interface GameCatalogCardProps {
   game: GameCatalogWithRoom;
+  isPlayable: boolean;
   footer: ReactNode;
 }
 
-export function GameCatalogCard({ game, footer }: GameCatalogCardProps) {
+export function GameCatalogCard({
+  game,
+  isPlayable,
+  footer,
+}: GameCatalogCardProps) {
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/88 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-      <div className="bg-[linear-gradient(135deg,_#0f172a_0%,_#1d4ed8_50%,_#7dd3fc_100%)] p-5 text-white">
+    <article className="overflow-hidden rounded-[2.1rem] border border-[#ffdca8] bg-white/92 shadow-[0_24px_60px_rgba(245,158,11,0.12)]">
+      <div className="bg-[linear-gradient(135deg,_#ffbf69_0%,_#ff8fab_46%,_#90dbf4_100%)] p-5 text-[#26324b]">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-sky-100/85">
+            <p className="text-xs tracking-[0.24em] text-white/90">
               {game.gameKey}
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
@@ -21,41 +26,45 @@ export function GameCatalogCard({ game, footer }: GameCatalogCardProps) {
           </div>
           <span
             className={`rounded-full px-3 py-1 text-xs font-medium ${
-              game.enabled
-                ? "bg-white/18 text-white"
-                : "bg-slate-200 text-slate-700"
+              isPlayable
+                ? "bg-white/70 text-[#1f2a44]"
+                : "bg-white/45 text-[#4b556f]"
             }`}
           >
-            {game.enabled ? "Enabled" : "Planned"}
+            {isPlayable ? "플레이 가능" : "준비 중"}
           </span>
         </div>
-        <p className="mt-4 text-sm leading-7 text-sky-50/85">{game.description}</p>
+        <p className="mt-4 text-sm leading-7 text-[#26324b]/85">{game.description}</p>
       </div>
       <div className="p-5">
-        <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-          <span className="rounded-full bg-slate-100 px-3 py-1">
-            {game.minPlayers} to {game.maxPlayers} players
+        <div className="flex flex-wrap gap-3 text-sm text-[#4f5d7c]">
+          <span className="rounded-full bg-[#fff2cf] px-3 py-1">
+            {game.minPlayers}명 ~ {game.maxPlayers}명
           </span>
           <span
             className={`rounded-full px-3 py-1 ${
               game.activeRoomId
-                ? "bg-amber-100 text-amber-900"
-                : "bg-emerald-100 text-emerald-900"
+                ? "bg-[#ffe3b3] text-[#9a5800]"
+                : "bg-[#ddf7e8] text-[#156c4c]"
             }`}
           >
             {game.activeRoomId
-              ? `${game.activeRoomPlayerCount} players in room`
-              : "Room available"}
+              ? `현재 방 인원 ${game.activeRoomPlayerCount}명`
+              : "열린 방 없음"}
           </span>
         </div>
-        <div className="mt-4 rounded-[1.4rem] bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600">
+        <div className="mt-4 rounded-[1.5rem] bg-[#fff9ec] px-4 py-4 text-sm leading-7 text-[#5f6784]">
           {game.activeRoomId ? (
             <>
-              Host: {game.activeRoomHostName ?? "Unknown"} · Status:{" "}
-              {game.activeRoomStatus}
+              방장: {game.activeRoomHostName ?? "알 수 없음"} · 상태:{" "}
+              {game.activeRoomStatus === "waiting"
+                ? "대기 중"
+                : game.activeRoomStatus === "playing"
+                  ? "진행 중"
+                  : game.activeRoomStatus}
             </>
           ) : (
-            <>No active room yet. The first family member to open it becomes the host.</>
+            <>아직 열린 방이 없습니다. 나중에 실제 게임이 붙으면 여기서 방을 만들 수 있습니다.</>
           )}
         </div>
         <div className="mt-5">{footer}</div>

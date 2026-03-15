@@ -8,6 +8,13 @@ Platform Polish
 
 Stabilize the MVP, improve UX, reduce defects, and prepare the platform for steady iteration.
 
+Current focus:
+
+- simplify the platform UI so children and parents can understand it at a glance
+- switch shared styling to a brighter family-game visual language
+- remove remaining English copy from core user-facing routes
+- verify that login remains reachable while game slots stay intentionally empty
+
 ## Implementation Order
 
 1. Review UX gaps across routes and game flows.
@@ -25,6 +32,9 @@ Stabilize the MVP, improve UX, reduce defects, and prepare the platform for stea
 - full regression pass
 - performance and usability checks
 - deployment readiness review
+- route smoke checks on `/`, `/login`, and protected navigation after UI refresh
+- `pnpm --filter @family-playground/web lint`
+- `pnpm --filter @family-playground/web typecheck`
 
 ## Exit Criteria
 

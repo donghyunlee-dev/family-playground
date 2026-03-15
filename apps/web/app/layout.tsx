@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Space_Grotesk, Source_Serif_4 } from "next/font/google";
+import { Gowun_Dodum, Jua } from "next/font/google";
 import "./globals.css";
 
-const headingFont = Space_Grotesk({
+const headingFont = Jua({
   subsets: ["latin"],
+  weight: "400",
   variable: "--font-heading",
 });
 
-const bodyFont = Source_Serif_4({
+const bodyFont = Gowun_Dodum({
   subsets: ["latin"],
+  weight: "400",
   variable: "--font-body",
 });
 
 export const metadata: Metadata = {
-  title: "Family Playground",
-  description: "Multiplayer family games built with Next.js and Supabase.",
+  title: "패밀리 플레이그라운드",
+  description: "부모와 아이가 함께 즐기는 가족용 게임 공간",
 };
 
 export default function RootLayout({
@@ -24,7 +26,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body className={`${headingFont.variable} ${bodyFont.variable}`}>
         {children}
       </body>
