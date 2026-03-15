@@ -14,7 +14,7 @@ export function GameCatalogCard({
 }: GameCatalogCardProps) {
   return (
     <article className="overflow-hidden rounded-[2.1rem] border border-[#ffdca8] bg-white/92 shadow-[0_24px_60px_rgba(245,158,11,0.12)]">
-      <div className="bg-[linear-gradient(135deg,_#ffbf69_0%,_#ff8fab_46%,_#90dbf4_100%)] p-5 text-[#26324b]">
+      <div className="border-b border-[#ffe7be] bg-[#fff8ea] p-5 text-[#26324b]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs tracking-[0.24em] text-white/90">

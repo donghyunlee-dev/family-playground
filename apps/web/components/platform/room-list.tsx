@@ -21,7 +21,7 @@ export function RoomList({ rooms }: RoomListProps) {
       {rooms.map((room) => (
         <article
           key={room.id}
-          className="rounded-[1.9rem] border border-[#ffdca8] bg-[linear-gradient(180deg,_#ffffff_0%,_#fff7e9_100%)] p-5 shadow-[0_18px_50px_rgba(245,158,11,0.1)]"
+          className="rounded-[1.9rem] border border-[#ffdca8] bg-[#fffdf9] p-5 shadow-[0_18px_50px_rgba(245,158,11,0.1)]"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>

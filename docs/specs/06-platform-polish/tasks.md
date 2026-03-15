@@ -18,5 +18,7 @@ In Progress
 - Updated shared typography and background styling to a brighter, child-friendly direction.
 - Reworked home, login, lobby, games, ranking, profile, and room pages with Korean copy and clearer empty states.
 - Adjusted buttons and navigation styles to avoid low-contrast hover states.
+- Removed decorative gradients from the main UI and simplified the lobby around the game list and open rooms.
+- Moved logout to the protected header top bar so account switching is easy during login testing.
 - Verified `pnpm --filter @family-playground/web lint` and `pnpm --filter @family-playground/web typecheck`.
 - Verified the local preview server responds on `http://127.0.0.1:3001/login`.

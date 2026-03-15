@@ -25,7 +25,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-10">
       <div className="mx-auto grid max-w-5xl gap-5">
-        <section className="overflow-hidden rounded-[2.7rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_#fff6dd_0%,_#ffd7e2_48%,_#daf2ff_100%)] px-7 py-10 text-[#26324b] shadow-[0_30px_90px_rgba(245,158,11,0.14)] md:px-10 md:py-12">
+        <section className="overflow-hidden rounded-[2.7rem] border border-[#ffdca8] bg-[#fffdf9] px-7 py-10 text-[#26324b] shadow-[0_30px_90px_rgba(245,158,11,0.14)] md:px-10 md:py-12">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p className="text-sm font-medium text-[#f97316]">가족 전용 게임 놀이터</p>

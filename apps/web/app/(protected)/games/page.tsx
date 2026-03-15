@@ -18,7 +18,7 @@ export default async function GamesPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="overflow-hidden rounded-[2.4rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_#fff4d2_0%,_#ffc7d8_48%,_#caedff_100%)] p-6 text-[#26324b] shadow-[0_26px_80px_rgba(245,158,11,0.14)] md:p-8">
+      <section className="overflow-hidden rounded-[2.4rem] border border-[#ffdca8] bg-[#fffdf9] p-6 text-[#26324b] shadow-[0_26px_80px_rgba(245,158,11,0.14)] md:p-8">
         <p className="text-xs tracking-[0.24em] text-[#f97316]">
           게임 목록
         </p>

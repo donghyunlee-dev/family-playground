@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="min-h-screen px-5 py-6 text-slate-950 md:px-8 md:py-10">
       <div className="mx-auto grid max-w-4xl gap-5">
-        <section className="rounded-[2.5rem] border border-[#ffdca8] bg-[linear-gradient(135deg,_#fff5d8_0%,_#ffdbe5_50%,_#d9f2ff_100%)] p-8 text-[#26324b] shadow-[0_28px_90px_rgba(245,158,11,0.14)] md:p-10">
+        <section className="rounded-[2.5rem] border border-[#ffdca8] bg-[#fffdf9] p-8 text-[#26324b] shadow-[0_28px_90px_rgba(245,158,11,0.14)] md:p-10">
           <p className="text-sm font-medium text-[#f97316]">로그인</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-balance">
             가족 구글 계정으로
