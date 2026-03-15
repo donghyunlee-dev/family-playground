@@ -22,10 +22,11 @@ This phase covers the product hub features after the platform foundation.
 ## UI Requirements
 
 - `/lobby` shows profile card, ranking preview, online members, and game catalog
-- `/games` lists playable games as cards
+- `/games` lists playable games as cards with room state surfaced directly in the card UI
 - `/games` must show when a room already exists for a game and offer join instead of create
 - `/room/{room_id}` shows room status, players, and host controls
 - `/profile` shows player information and recent matches
+- the public landing and protected shell should feel like a curated App Store-style product surface rather than a plain dashboard
 
 ## Data Requirements
 

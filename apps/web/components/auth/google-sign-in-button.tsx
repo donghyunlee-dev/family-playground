@@ -38,7 +38,7 @@ export function GoogleSignInButton() {
   return (
     <div className="space-y-3">
       <button
-        className="inline-flex items-center justify-center rounded-full bg-stone-950 px-6 py-3 text-sm font-medium text-stone-50 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+        className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,_#0f172a_0%,_#1d4ed8_100%)] px-6 py-3 text-sm font-medium text-white shadow-[0_16px_40px_rgba(37,99,235,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={loading}
         onClick={handleClick}
         type="button"
@@ -46,7 +46,7 @@ export function GoogleSignInButton() {
         {loading ? "Redirecting to Google..." : "Continue with Google"}
       </button>
       {error ? (
-        <p className="rounded-2xl bg-rose-100 px-4 py-3 text-sm text-rose-900">
+        <p className="rounded-[1.4rem] bg-rose-100 px-4 py-3 text-sm text-rose-900">
           {error}
         </p>
       ) : null}

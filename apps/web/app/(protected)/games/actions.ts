@@ -43,33 +43,20 @@ export async function createRoomAction(formData: FormData) {
     redirect(`/room/${existingRoom.id}`);
   }
 
-  const { data: room, error: roomError } = await supabase
-    .from("game_rooms")
-    .insert({
-      game_id: game.id,
-      host_user_id: user.id,
-      status: "waiting",
-    })
-    .select("*")
-    .single();
+  const { data: roomId, error: roomError } = await supabase.rpc(
+    "create_game_room",
+    {
+      p_game_id: game.id,
+      p_host_user_id: user.id,
+    },
+  );
 
-  if (roomError || !room) {
+  if (roomError || !roomId) {
     throw roomError ?? new Error("Unable to create room.");
-  }
-
-  const { error: roomPlayerError } = await supabase.from("room_players").insert({
-    room_id: room.id,
-    user_id: user.id,
-    is_host: true,
-    presence_status: "online",
-  });
-
-  if (roomPlayerError) {
-    throw roomPlayerError;
   }
 
   revalidatePath("/games");
   revalidatePath("/lobby");
-  revalidatePath(`/room/${room.id}`);
-  redirect(`/room/${room.id}`);
+  revalidatePath(`/room/${roomId}`);
+  redirect(`/room/${roomId}`);
 }

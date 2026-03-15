@@ -1,8 +1,9 @@
 "use client";
 
-import { createClient } from "@family-playground/supabase-client";
+import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/lib/supabase/types";
 
-let browserClient: ReturnType<typeof createClient> | null = null;
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
 
 export function createSupabaseBrowserClient() {
   if (browserClient) {
@@ -16,10 +17,7 @@ export function createSupabaseBrowserClient() {
     throw new Error("Missing public Supabase environment variables.");
   }
 
-  browserClient = createClient({
-    url,
-    anonKey,
-  });
+  browserClient = createBrowserClient<Database>(url, anonKey);
 
   return browserClient;
 }

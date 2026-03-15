@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { getPublicSupabaseEnv } from "@/lib/supabase/config";
+import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
 import type { Database } from "@/lib/supabase/types";
 
 const protectedPrefixes = ["/lobby", "/games", "/ranking", "/profile", "/room"];

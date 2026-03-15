@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffdf8;
-  --foreground: #1c1917;
+  --background: #f7fbff;
+  --foreground: #0f172a;
 }
 
 * {
@@ -17,6 +17,10 @@ body {
   margin: 0;
   color: var(--foreground);
   font-family: var(--font-body), serif;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 26%),
+    linear-gradient(180deg, #eff6ff 0%, #f8fbff 42%, #f6f1e8 100%);
 }
 
 h1,
@@ -34,5 +38,10 @@ a {
 }
 
 ::selection {
-  background: rgba(249, 115, 22, 0.2);
+  background: rgba(56, 189, 248, 0.24);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }

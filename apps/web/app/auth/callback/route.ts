@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getPublicSupabaseEnv } from "@/lib/supabase/config";
+import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
 import type { Database } from "@/lib/supabase/types";
 
 export async function GET(request: Request) {

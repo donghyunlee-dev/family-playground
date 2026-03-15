@@ -29,6 +29,7 @@ export interface Database {
           invited_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["family_members"]["Insert"]>;
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -54,6 +55,7 @@ export interface Database {
           is_active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       games: {
         Row: {
@@ -79,6 +81,7 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["games"]["Insert"]>;
+        Relationships: [];
       };
       game_rooms: {
         Row: {
@@ -100,6 +103,29 @@ export interface Database {
           current_session_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["game_rooms"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "game_rooms_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_rooms_host_user_id_fkey";
+            columns: ["host_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_rooms_current_session_id_fkey";
+            columns: ["current_session_id"];
+            isOneToOne: false;
+            referencedRelation: "game_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       room_players: {
         Row: {
@@ -121,6 +147,22 @@ export interface Database {
           left_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["room_players"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "room_players_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: false;
+            referencedRelation: "game_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "room_players_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       game_sessions: {
         Row: {
@@ -142,6 +184,22 @@ export interface Database {
           result_payload?: Json | null;
         };
         Update: Partial<Database["public"]["Tables"]["game_sessions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: false;
+            referencedRelation: "game_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_sessions_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       game_scores: {
         Row: {
@@ -163,6 +221,22 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["game_scores"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "game_scores_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "game_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_scores_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       score_history: {
         Row: {
@@ -186,13 +260,96 @@ export interface Database {
           running_total: number;
         };
         Update: Partial<Database["public"]["Tables"]["score_history"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "score_history_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "score_history_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "score_history_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "game_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      game_assets: {
+        Row: {
+          id: string;
+          game_id: string;
+          asset_type: string;
+          url: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_id: string;
+          asset_type: string;
+          url: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["game_assets"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "game_assets_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_game_room: {
+        Args: {
+          p_game_id: string;
+          p_host_user_id: string;
+        };
+        Returns: string;
+      };
+      join_game_room: {
+        Args: {
+          p_room_id: string;
+          p_user_id: string;
+        };
+        Returns: string;
+      };
+      start_game_room_session: {
+        Args: {
+          p_room_id: string;
+          p_host_user_id: string;
+        };
+        Returns: string;
+      };
+      finish_game_room_session: {
+        Args: {
+          p_room_id: string;
+          p_host_user_id: string;
+        };
+        Returns: string;
+      };
+      leave_game_room: {
+        Args: {
+          p_room_id: string;
+          p_user_id: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;

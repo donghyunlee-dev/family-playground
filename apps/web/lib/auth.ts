@@ -2,6 +2,18 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureFamilyAccess } from "@/lib/platform";
 
+function buildSignedOutLoginHref(reason: string | null) {
+  const params = new URLSearchParams();
+
+  if (reason) {
+    params.set("error", reason);
+  }
+
+  return `/auth/sign-out?redirectTo=${encodeURIComponent(
+    `/login${params.toString() ? `?${params.toString()}` : ""}`,
+  )}`;
+}
+
 export async function requireAppSession() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -15,8 +27,7 @@ export async function requireAppSession() {
   const access = await ensureFamilyAccess(user);
 
   if (!access.allowed) {
-    await supabase.auth.signOut();
-    redirect(`/login?error=${access.reason}`);
+    redirect(buildSignedOutLoginHref(access.reason));
   }
 
   return {
@@ -25,3 +36,5 @@ export async function requireAppSession() {
     member: access.member,
   };
 }
+
+export { buildSignedOutLoginHref };

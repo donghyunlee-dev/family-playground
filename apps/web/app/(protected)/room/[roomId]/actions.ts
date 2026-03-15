@@ -33,11 +33,9 @@ export async function joinRoomAction(roomId: string) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("room_players").insert({
-    room_id: roomId,
-    user_id: user.id,
-    is_host: false,
-    presence_status: "online",
+  const { error } = await supabase.rpc("join_game_room", {
+    p_room_id: roomId,
+    p_user_id: user.id,
   });
 
   if (error) {
@@ -71,34 +69,76 @@ export async function startRoomAction(roomId: string) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { data: session, error: sessionError } = await supabase
-    .from("game_sessions")
-    .insert({
-      room_id: room.id,
-      game_id: room.gameId,
-      status: "in_progress",
-    })
-    .select("*")
-    .single();
+  const { data: sessionId, error: sessionError } = await supabase.rpc(
+    "start_game_room_session",
+    {
+      p_room_id: room.id,
+      p_host_user_id: user.id,
+    },
+  );
 
-  if (sessionError || !session) {
+  if (sessionError || !sessionId) {
     throw sessionError ?? new Error("Unable to create game session.");
-  }
-
-  const { error: roomError } = await supabase
-    .from("game_rooms")
-    .update({
-      status: "playing",
-      current_session_id: session.id,
-    })
-    .eq("id", room.id);
-
-  if (roomError) {
-    throw roomError;
   }
 
   revalidatePath("/lobby");
   revalidatePath("/games");
   revalidatePath(`/room/${roomId}`);
   redirect(`/room/${roomId}`);
+}
+
+export async function finishRoomAction(roomId: string) {
+  const { user } = await requireAppSession();
+  const room = await getRoomById(roomId);
+
+  if (!room) {
+    throw new Error("Room not found.");
+  }
+
+  if (room.hostUserId !== user.id) {
+    throw new Error("Only the host can finish the session.");
+  }
+
+  if (room.status !== "playing" || !room.currentSessionId) {
+    throw new Error("Room does not have an active session.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.rpc("finish_game_room_session", {
+    p_room_id: room.id,
+    p_host_user_id: user.id,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath("/lobby");
+  revalidatePath("/games");
+  revalidatePath(`/room/${roomId}`);
+  redirect(`/room/${roomId}`);
+}
+
+export async function leaveRoomAction(roomId: string) {
+  const { user } = await requireAppSession();
+  const room = await getRoomById(roomId);
+
+  if (!room) {
+    redirect("/lobby");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.rpc("leave_game_room", {
+    p_room_id: room.id,
+    p_user_id: user.id,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath("/lobby");
+  revalidatePath("/games");
+  revalidatePath(`/room/${roomId}`);
+  redirect("/lobby");
 }

@@ -1,15 +1,6 @@
-import { createAdminClient } from "@family-playground/supabase-client";
-
-export function getPublicSupabaseEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error("Missing public Supabase environment variables.");
-  }
-
-  return { url, anonKey };
-}
+import { createClient } from "@supabase/supabase-js";
+import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
+import type { Database } from "@/lib/supabase/types";
 
 export function getServiceRoleEnv() {
   const { url, anonKey } = getPublicSupabaseEnv();
@@ -23,5 +14,14 @@ export function getServiceRoleEnv() {
 }
 
 export function createSupabaseAdminClient() {
-  return createAdminClient(getServiceRoleEnv());
+  const { url, serviceRoleKey } = getServiceRoleEnv();
+
+  return createClient<Database>(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
+
+export { getPublicSupabaseEnv };

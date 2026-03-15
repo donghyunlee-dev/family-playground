@@ -1,14 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getPublicSupabaseEnv } from "@/lib/supabase/config";
+import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
 import type { Database } from "@/lib/supabase/types";
 
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin;
+  const { origin, searchParams } = new URL(request.url);
+  const redirectTo = searchParams.get("redirectTo") ?? "/login";
   const cookieStore = await cookies();
   const { url, anonKey } = getPublicSupabaseEnv();
-  const response = NextResponse.redirect(`${origin}/login`);
+  const response = NextResponse.redirect(new URL(redirectTo, origin));
   const supabase = createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
