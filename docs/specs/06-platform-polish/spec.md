@@ -14,6 +14,7 @@ This phase covers final quality improvements before considering the MVP complete
 - resolve bugs from earlier phases
 - improve performance where needed
 - ensure documentation reflects the implemented platform
+- keep a maintained UI regression checklist and use it after every UI-affecting change
 
 ## Completion Standard
 

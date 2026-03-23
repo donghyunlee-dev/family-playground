@@ -340,6 +340,8 @@ export interface Database {
         Args: {
           p_room_id: string;
           p_host_user_id: string;
+          p_session_id: string;
+          p_result_payload: Json;
         };
         Returns: string;
       };

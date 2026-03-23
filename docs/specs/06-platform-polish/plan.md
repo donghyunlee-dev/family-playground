@@ -14,6 +14,7 @@ Current focus:
 - switch shared styling to a brighter family-game visual language
 - remove remaining English copy from core user-facing routes
 - verify that login remains reachable while game slots stay intentionally empty
+- collapse the public entry flow so `/` shows the game catalog immediately and authentication happens in-place
 
 ## Implementation Order
 
@@ -33,6 +34,7 @@ Current focus:
 - performance and usability checks
 - deployment readiness review
 - route smoke checks on `/`, `/login`, and protected navigation after UI refresh
+- use `ui-regression-checklist.md` after every UI-affecting change
 - `pnpm --filter @family-playground/web lint`
 - `pnpm --filter @family-playground/web typecheck`
 

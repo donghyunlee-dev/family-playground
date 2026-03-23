@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppSession } from "@/lib/auth";
 import { getActiveRoomForUser } from "@/lib/platform";
+import { getRoomPath } from "@/lib/room-routes";
 import { createSupabaseAdminClient } from "@/lib/supabase/config";
 
 export async function createRoomAction(formData: FormData) {
@@ -18,7 +19,7 @@ export async function createRoomAction(formData: FormData) {
   const userActiveRoom = await getActiveRoomForUser(user.id);
 
   if (userActiveRoom) {
-    redirect(`/room/${userActiveRoom.id}`);
+    redirect(getRoomPath(userActiveRoom.id, userActiveRoom.status));
   }
 
   const { data: game, error: gameError } = await supabase
@@ -40,7 +41,12 @@ export async function createRoomAction(formData: FormData) {
     .maybeSingle();
 
   if (existingRoom) {
-    redirect(`/room/${existingRoom.id}`);
+    redirect(
+      getRoomPath(
+        existingRoom.id,
+        existingRoom.status as "waiting" | "playing" | "finished",
+      ),
+    );
   }
 
   const { data: roomId, error: roomError } = await supabase.rpc(

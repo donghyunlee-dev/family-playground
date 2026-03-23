@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
+import { getRequiredEnv } from "@/lib/supabase/env";
 import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
 import type { Database } from "@/lib/supabase/types";
 
 export function getServiceRoleEnv() {
   const { url, anonKey } = getPublicSupabaseEnv();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!serviceRoleKey) {
-    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY.");
-  }
+  const { SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey } = getRequiredEnv(
+    process.env,
+    ["SUPABASE_SERVICE_ROLE_KEY"] as const,
+  );
 
   return { url, anonKey, serviceRoleKey };
 }

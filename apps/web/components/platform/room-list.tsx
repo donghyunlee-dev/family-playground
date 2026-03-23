@@ -1,6 +1,7 @@
 import type { RoomSummary } from "@family-playground/types";
 import Link from "next/link";
 import { EmptyState } from "@family-playground/ui";
+import { getRoomPath } from "@/lib/room-routes";
 
 interface RoomListProps {
   rooms: RoomSummary[];
@@ -41,9 +42,9 @@ export function RoomList({ rooms }: RoomListProps) {
             </div>
             <Link
               className="inline-flex w-full justify-center rounded-full border border-[#ffd58c] bg-[#ffd666] px-4 py-2.5 text-sm font-medium text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44] md:w-fit md:py-2"
-              href={`/room/${room.id}`}
+              href={getRoomPath(room.id, room.status)}
             >
-              방 열기
+              {room.status === "playing" ? "게임 입장" : "대기방 열기"}
             </Link>
           </div>
         </article>

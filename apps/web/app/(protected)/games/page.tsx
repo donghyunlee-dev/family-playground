@@ -3,10 +3,11 @@ import { GameCatalogCard } from "@/components/platform/game-catalog-card";
 import Link from "next/link";
 import { requireAppSession } from "@/lib/auth";
 import { getActiveRoomForUser, listGamesWithRoomState } from "@/lib/platform";
+import { getRoomPath } from "@/lib/room-routes";
 import { createRoomAction } from "./actions";
 import { EmptyState } from "@family-playground/ui";
 
-const playableGameKeys = new Set<string>();
+const playableGameKeys = new Set<string>(["word-chain"]);
 
 export default async function GamesPage() {
   const { user } = await requireAppSession();
@@ -18,48 +19,38 @@ export default async function GamesPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="overflow-hidden rounded-[1.8rem] border border-[#ffdca8] bg-[#fffdf9] p-4 text-[#26324b] shadow-[0_18px_42px_rgba(245,158,11,0.1)] md:rounded-[2.4rem] md:p-8 md:shadow-[0_26px_80px_rgba(245,158,11,0.14)]">
-        <p className="text-xs tracking-[0.24em] text-[#f97316]">
-          게임 목록
+      <section className="overflow-hidden rounded-[1.8rem] border border-[#d8dee8] bg-white p-5 text-[#0f172a] shadow-[0_20px_50px_rgba(15,23,42,0.06)] md:rounded-[2.2rem] md:p-8">
+        <p className="text-xs tracking-[0.18em] text-[#64748b]">
+          GAME LIBRARY
         </p>
-        <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-[-0.04em] text-balance md:mt-3 md:text-4xl">
-          게임 선택
+        <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-[-0.04em] text-balance text-[#0f172a] md:mt-3 md:text-4xl">
+          함께 할 게임 고르기
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#4d5c7a] md:mt-4 md:text-base md:leading-7">
-          준비된 게임이 생기면 여기서 같은 방으로 모입니다.
-        </p>
-        <div className="mt-4 grid grid-cols-1 gap-2 md:mt-6 md:flex md:flex-wrap md:gap-3">
-          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3 md:mt-6">
+          <div className="rounded-[1rem] bg-[#f8fafc] px-4 py-3 text-sm text-[#334155]">
             등록된 게임 {games.length}개
           </div>
-          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
+          <div className="rounded-[1rem] bg-[#f8fafc] px-4 py-3 text-sm text-[#334155]">
             플레이 가능 {launchReadyGames.length}개
           </div>
-          <div className="rounded-[1rem] bg-white/72 px-4 py-2 text-sm text-[#34415f] md:rounded-full">
+          <div className="rounded-[1rem] bg-[#f8fafc] px-4 py-3 text-sm text-[#334155]">
             {userActiveRoom ? "현재 참가 중인 방이 있습니다" : "아직 참가 중인 방이 없습니다"}
           </div>
         </div>
       </section>
 
       <SectionCard
-        eyebrow="상태"
-        title="지금은 준비 단계"
-        description="실제 플레이 가능한 게임은 아직 없습니다."
+        eyebrow="라인업"
+        title="게임 리스트"
+        description=" "
       >
-        {launchReadyGames.length === 0 ? (
+        {games.length === 0 ? (
           <EmptyState
-            title="아직 플레이 가능한 게임이 없습니다"
-            description="플랫폼 화면과 로그인, 방 구조를 먼저 정리한 뒤 메모리 카드나 끝말잇기 같은 실제 게임을 연결할 예정입니다."
+            title="등록된 게임이 없습니다"
+            description="게임 패키지를 연결하면 이 목록이 채워집니다."
           />
-        ) : null}
-      </SectionCard>
-
-      <SectionCard
-        eyebrow="예정"
-        title="준비 중인 게임"
-        description="게임 패키지는 등록되어 있지만 아직 실행되지는 않습니다."
-      >
-        <div className="grid gap-4 lg:grid-cols-2">
+        ) : (
+        <div className="grid gap-3">
           {games.map((game) => {
             const isPlayable = playableGameKeys.has(game.gameKey);
 
@@ -73,9 +64,12 @@ export default async function GamesPage() {
                     game.activeRoomId ? (
                       <Link
                         className="inline-flex rounded-full border border-[#ffd58c] bg-[#ffd666] px-4 py-2 text-sm font-medium text-[#25314b] transition hover:bg-[#ffc94f] hover:text-[#1f2a44]"
-                        href={`/room/${game.activeRoomId}`}
+                        href={getRoomPath(
+                          game.activeRoomId,
+                          game.activeRoomStatus ?? "waiting",
+                        )}
                       >
-                        열린 방 참가
+                        {game.activeRoomStatus === "playing" ? "게임 입장" : "열린 방 참가"}
                       </Link>
                     ) : userActiveRoom ? (
                       <div className="rounded-full bg-[#fff2cf] px-4 py-2 text-sm text-[#6a5b2a]">
@@ -102,6 +96,7 @@ export default async function GamesPage() {
             );
           })}
         </div>
+        )}
       </SectionCard>
     </div>
   );

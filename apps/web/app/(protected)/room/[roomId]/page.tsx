@@ -1,7 +1,10 @@
 import { EmptyState, SectionCard } from "@family-playground/ui";
+import { RoomRealtimePanel } from "@/components/platform/room-realtime-panel";
 import { requireAppSession } from "@/lib/auth";
 import { getRoomById } from "@/lib/platform";
-import { finishRoomAction, joinRoomAction, leaveRoomAction, startRoomAction } from "./actions";
+import { getRoomPath } from "@/lib/room-routes";
+import { redirect } from "next/navigation";
+import { joinRoomAction, leaveRoomAction, startRoomAction } from "./actions";
 
 interface RoomPageProps {
   params: Promise<{
@@ -11,7 +14,7 @@ interface RoomPageProps {
 
 export default async function RoomPage({ params }: RoomPageProps) {
   const { roomId } = await params;
-  const { user } = await requireAppSession();
+  const { user, profile } = await requireAppSession();
   const room = await getRoomById(roomId);
 
   if (!room) {
@@ -29,6 +32,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
     );
   }
 
+  if (room.status === "playing") {
+    redirect(getRoomPath(room.id, room.status));
+  }
+
   const isMember = room.players.some((player) => player.userId === user.id);
   const canJoin =
     room.status === "waiting" && !isMember && room.players.length < room.maxPlayers;
@@ -36,8 +43,6 @@ export default async function RoomPage({ params }: RoomPageProps) {
     room.status === "waiting" &&
     room.hostUserId === user.id &&
     room.players.length >= room.minPlayers;
-  const canFinish = room.status === "playing" && room.hostUserId === user.id;
-
   return (
     <div className="grid gap-4 md:gap-6 lg:grid-cols-[1.02fr_0.98fr]">
       <div className="grid gap-6">
@@ -52,14 +57,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
             가족이 모이면 여기서 바로 시작합니다.
           </p>
           <div className="mt-4 grid gap-2 md:mt-6 md:grid-cols-2 md:gap-3">
-            <div className="rounded-[1.6rem] bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(255,143,171,0.12)]">
+            <div className="rounded-[1.6rem] bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
               <p className="text-sm text-[#f97316]">상태</p>
               <p className="mt-1.5 text-xl font-semibold text-[#26324b] md:mt-2 md:text-2xl">
-                {room.status === "waiting"
-                  ? "대기 중"
-                  : room.status === "playing"
-                    ? "진행 중"
-                    : "종료됨"}
+                {room.status === "waiting" ? "대기 중" : "종료됨"}
               </p>
             </div>
             <div className="rounded-[1.6rem] bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(144,219,244,0.16)]">
@@ -76,6 +77,15 @@ export default async function RoomPage({ params }: RoomPageProps) {
           title="방 관리 버튼"
           description="여기서 참가와 시작을 관리합니다."
         >
+          <RoomRealtimePanel
+            roomId={room.id}
+            gameId={room.gameId}
+            userId={user.id}
+            displayName={profile.displayName}
+            roomStatus={room.status}
+            currentSessionId={room.currentSessionId}
+            isHost={room.hostUserId === user.id}
+          />
           <div className="grid gap-2 text-sm text-[#5f6784] md:gap-3">
             <div className="rounded-[1.5rem] bg-[#fff9ec] px-4 py-3">
               방장: {room.hostName}
@@ -108,20 +118,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 </button>
               </form>
             ) : null}
-            {canFinish ? (
-              <form action={finishRoomAction.bind(null, room.id)}>
-                <button
-                  className="w-full rounded-full bg-[#fb923c] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#f97316]"
-                  type="submit"
-                >
-                  게임 종료
-                </button>
-              </form>
-            ) : null}
             {isMember ? (
               <form action={leaveRoomAction.bind(null, room.id)}>
                 <button
-                  className="w-full rounded-full border border-[#fecdd3] bg-[#fff1f3] px-4 py-2.5 text-sm font-medium text-[#be123c] transition hover:bg-[#ffe4e6] hover:text-[#9f1239]"
+                  className="w-full rounded-full border border-[#fecaca] bg-[#fef2f2] px-4 py-2.5 text-sm font-medium text-[#b91c1c] transition hover:bg-[#fee2e2] hover:text-[#991b1b]"
                   type="submit"
                 >
                   방 나가기

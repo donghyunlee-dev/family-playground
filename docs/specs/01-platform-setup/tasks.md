@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Complete
 
 ## Tasks
 
@@ -14,9 +14,9 @@ In Progress
 - [x] Finish local Supabase startup and verify status.
 - [x] Add base authentication routes and session wiring.
 - [x] Add family access control foundations and protected route rules.
-- [ ] Resolve current production build blocker in Next.js webpack output.
-- [ ] Re-run local web startup verification outside the current sandbox listen restriction.
-- [ ] Record final verification results and mark phase complete.
+- [x] Resolve current production build blocker in Next.js webpack output.
+- [x] Re-run local web startup verification outside the current sandbox listen restriction.
+- [x] Record final verification results and mark phase complete.
 
 ## Current Result
 
@@ -28,9 +28,12 @@ In Progress
 - verification confirmed:
   - `pnpm lint` passes
   - `pnpm typecheck` passes
+  - `pnpm build` passes
   - `pnpm exec supabase db reset --yes` passes
   - `pnpm --filter @family-playground/web dev --hostname 127.0.0.1 --port 3001` starts successfully with escalation
   - `curl -I http://127.0.0.1:3001` returns `200`
   - `curl -I http://127.0.0.1:3001/login` returns `200`
   - `curl -I http://127.0.0.1:3001/games` returns `307` to `/login` for unauthenticated access
-- current blocker: `pnpm build` still fails with a generic Next.js webpack error and requires further isolation before Phase 01 can be closed
+- remaining work moved to later phases:
+  - authenticated browser validation remains part of Phase 02
+  - realtime gameplay remains part of Phase 03

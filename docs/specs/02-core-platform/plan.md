@@ -8,6 +8,13 @@ Core Platform
 
 Implement the first complete platform flows after setup: user profiles, game catalog, lobby, room creation and join flows, and presence-aware family hub screens.
 
+Current adjustment:
+
+- treat `/` as the public catalog entry instead of a marketing landing page
+- expose game and room visibility before login
+- trigger Google OAuth only when an unauthenticated user tries to start or join a flow
+- return authenticated users to `/` with session and profile state already restored
+
 ## Implementation Order
 
 1. Define data and UI requirements for profiles, games, rooms, and players.

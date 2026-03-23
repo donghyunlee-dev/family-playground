@@ -1,19 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Gowun_Dodum, Jua } from "next/font/google";
 import "./globals.css";
-
-const headingFont = Jua({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-heading",
-});
-
-const bodyFont = Gowun_Dodum({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-body",
-});
 
 export const metadata: Metadata = {
   title: "패밀리 플레이그라운드",
@@ -27,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${headingFont.variable} ${bodyFont.variable}`}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
