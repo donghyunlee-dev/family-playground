@@ -7,18 +7,14 @@ import { normalizeNextPath } from "@/lib/redirect-path";
 import type { Database } from "@/lib/supabase/types";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
   const origin = getRequestOrigin(request);
-  const code = searchParams.get("code");
+  const { searchParams } = new URL(request.url);
   const next = normalizeNextPath(searchParams.get("next"));
   const cookieStore = await cookies();
   const { url, anonKey } = getPublicSupabaseEnv();
-
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing-code`);
-  }
-
-  const response = NextResponse.redirect(`${origin}${next}`);
+  const response = NextResponse.redirect(
+    `${origin}/login?force=1&next=${encodeURIComponent(next)}`,
+  );
   const supabase = createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
@@ -32,16 +28,19 @@ export async function GET(request: Request) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  await supabase.auth.signOut();
 
-  if (error) {
-    const params = new URLSearchParams({
-      error: "auth-callback-failed",
-      detail: error.message,
+  cookieStore
+    .getAll()
+    .filter((cookie) => cookie.name.startsWith("sb-"))
+    .forEach((cookie) => {
+      response.cookies.set({
+        name: cookie.name,
+        value: "",
+        path: "/",
+        maxAge: 0,
+      });
     });
-
-    return NextResponse.redirect(`${origin}/login?${params.toString()}`);
-  }
 
   return response;
 }

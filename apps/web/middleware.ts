@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getPublicSupabaseEnv } from "@/lib/supabase/public-env";
+import { normalizeNextPath } from "@/lib/redirect-path";
 import type { Database } from "@/lib/supabase/types";
 
 const protectedPrefixes = ["/lobby", "/games", "/ranking", "/profile", "/room"];
@@ -34,11 +35,18 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedRoute && !user) {
     const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set(
+      "next",
+      normalizeNextPath(`${pathname}${request.nextUrl.search}`),
+    );
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/lobby", request.url));
+  const forceLogin = request.nextUrl.searchParams.get("force") === "1";
+
+  if (pathname === "/login" && user && !forceLogin) {
+    const next = normalizeNextPath(request.nextUrl.searchParams.get("next"));
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   return response;

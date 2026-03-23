@@ -9,16 +9,12 @@ import type { Database } from "@/lib/supabase/types";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = getRequestOrigin(request);
-  const code = searchParams.get("code");
   const next = normalizeNextPath(searchParams.get("next"));
+  const force = searchParams.get("force") === "1";
+  const mode = searchParams.get("mode");
   const cookieStore = await cookies();
   const { url, anonKey } = getPublicSupabaseEnv();
-
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing-code`);
-  }
-
-  const response = NextResponse.redirect(`${origin}${next}`);
+  const response = NextResponse.next();
   const supabase = createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
@@ -32,16 +28,36 @@ export async function GET(request: Request) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (force) {
+    await supabase.auth.signOut();
+  }
 
-  if (error) {
+  const callbackPath =
+    mode === "popup" ? "/auth/popup-callback" : "/auth/callback";
+  const redirectTo = `${origin}${callbackPath}?next=${encodeURIComponent(next)}`;
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo,
+      queryParams: {
+        prompt: "select_account",
+      },
+    },
+  });
+
+  if (error || !data.url) {
     const params = new URLSearchParams({
       error: "auth-callback-failed",
-      detail: error.message,
+      detail: error?.message ?? "Google OAuth URL was not returned.",
     });
 
     return NextResponse.redirect(`${origin}/login?${params.toString()}`);
   }
 
-  return response;
+  const redirectResponse = NextResponse.redirect(data.url);
+  response.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie);
+  });
+
+  return redirectResponse;
 }

@@ -20,11 +20,19 @@ export default async function ProfilePage() {
           <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
             가족 역할: {member.role === "admin" ? "관리자" : "구성원"}
           </div>
-          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
-            누적 점수: {profile.totalScore}
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[1.2rem] bg-[#eef8ff] px-4 py-4 md:rounded-[1.6rem]">
+            <p className="text-xs tracking-[0.16em] text-[#4b6c8d]">누적 점수</p>
+            <p className="mt-2 text-2xl font-semibold text-[#26324b]">
+              {profile.totalScore}
+            </p>
           </div>
-          <div className="rounded-[1.2rem] bg-[#fff9ec] px-4 py-3 md:rounded-[1.6rem]">
-            플레이 횟수: {profile.gamesPlayed}
+          <div className="rounded-[1.2rem] bg-[#eef8ff] px-4 py-4 md:rounded-[1.6rem]">
+            <p className="text-xs tracking-[0.16em] text-[#4b6c8d]">플레이 횟수</p>
+            <p className="mt-2 text-2xl font-semibold text-[#26324b]">
+              {profile.gamesPlayed}
+            </p>
           </div>
         </div>
       </SectionCard>
@@ -57,6 +65,9 @@ export default async function ProfilePage() {
                     <p className="font-semibold text-[#26324b]">{entry.scoreDelta}</p>
                     <p className="text-xs text-[#6b728c]">
                       현재 합계: {entry.runningTotal}
+                    </p>
+                    <p className="mt-1 text-xs text-[#94a3b8]">
+                      {new Date(entry.createdAt).toLocaleString("ko-KR")}
                     </p>
                   </div>
                 </div>

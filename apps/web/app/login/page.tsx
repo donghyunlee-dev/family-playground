@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { buildSignedOutLoginHref } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ensureFamilyAccess } from "@/lib/platform";
+import { ensureFamilyAccess, getActiveRoomForUser } from "@/lib/platform";
+import { getRoomPath } from "@/lib/room-routes";
+import { normalizeNextPath } from "@/lib/redirect-path";
 
 export const dynamic = "force-dynamic";
 
@@ -21,24 +23,35 @@ interface LoginPageProps {
   searchParams: Promise<{
     error?: string;
     detail?: string;
+    force?: string;
+    next?: string;
   }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error, detail } = await searchParams;
+  const { error, detail, force, next } = await searchParams;
+  const normalizedNext = normalizeNextPath(next);
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
+  if (user && force !== "1") {
     const access = await ensureFamilyAccess(user);
 
     if (access.allowed) {
-      redirect("/lobby");
+      const activeRoom = await getActiveRoomForUser(user.id);
+
+      redirect(
+        next
+          ? normalizedNext
+          : activeRoom
+            ? getRoomPath(activeRoom.id, activeRoom.status)
+            : "/lobby",
+      );
     }
 
-    redirect(buildSignedOutLoginHref(access.reason));
+    redirect(buildSignedOutLoginHref(access.reason, normalizedNext));
   }
 
   return (
@@ -51,46 +64,33 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <br className="md:hidden" />
             로그인
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#4d5c7a] md:mt-5 md:text-base md:leading-8">
-            로그인만 성공하면 바로 로비로 이동합니다.
-          </p>
         </section>
 
         <section className="rounded-[1.8rem] border border-[#ffdca8] bg-white/90 p-4 shadow-[0_18px_40px_rgba(245,158,11,0.08)] md:rounded-[2.3rem] md:p-6 md:shadow-[0_24px_70px_rgba(245,158,11,0.1)]">
           <h2 className="text-xl font-semibold tracking-[-0.03em] text-[#26324b] md:text-2xl">
             구글 로그인
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#5f6784] md:mt-3 md:leading-7">
-            버튼을 누르면 구글 로그인으로 이동합니다.
-          </p>
           <div className="mt-4 md:mt-6">
-            <GoogleSignInButton />
+            <GoogleSignInButton next={normalizedNext} />
           </div>
           {error ? (
-            <div className="mt-4 rounded-[1.6rem] border border-[#fecdd3] bg-[#fff1f3] px-4 py-4 text-sm leading-6 text-[#9f1239]">
+            <div className="mt-4 rounded-[1.6rem] border border-[#fecaca] bg-[#fef2f2] px-4 py-4 text-sm leading-6 text-[#b91c1c]">
               {errorMessages[error] ?? "로그인을 계속 진행할 수 없습니다."}
               {detail ? (
-                <p className="mt-2 break-all text-xs text-[#881337]">{detail}</p>
+                <p className="mt-2 break-all text-xs text-[#991b1b]">{detail}</p>
               ) : null}
             </div>
           ) : null}
-        </section>
-
-        <section className="rounded-[1.8rem] border border-dashed border-[#fbbf24] bg-[#fff9ec]/92 p-4 md:rounded-[2.1rem] md:p-6">
-          <h2 className="text-lg font-semibold tracking-[-0.03em] text-[#26324b] md:text-xl">
-            확인할 것
-          </h2>
-          <div className="mt-3 grid gap-2 text-sm leading-6 text-[#5f6784] md:mt-4 md:gap-3 md:leading-7">
-            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
-              1. Google 로그인이 켜져 있어야 합니다.
+          {error === "auth-callback-failed" ? (
+            <div className="mt-4">
+              <a
+                className="inline-flex rounded-full border border-[#d8dee8] bg-white px-4 py-2.5 text-sm font-medium text-[#25314b] transition hover:bg-[#f8fafc]"
+                href={`/auth/reset-session?next=${encodeURIComponent(normalizedNext)}`}
+              >
+                세션 초기화 후 다시 로그인
+              </a>
             </div>
-            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
-              2. Redirect URL이 맞아야 합니다.
-            </div>
-            <div className="rounded-[1rem] bg-white px-3 py-2.5 md:rounded-[1.4rem] md:px-4 md:py-3">
-              3. 통과하면 바로 로비로 이동합니다.
-            </div>
-          </div>
+          ) : null}
         </section>
       </div>
     </main>
