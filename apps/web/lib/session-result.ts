@@ -1,5 +1,7 @@
 import { wordChainGame, type WordChainState } from "@family-playground/game-word-chain";
 
+const VIRTUAL_PLAYER_ID_PREFIX = "bot:";
+
 export interface SessionResultRow {
   playerId: string;
   score: number;
@@ -74,7 +76,12 @@ export function buildWordChainSessionResult(
     awardedPoints: calculated.winnerIds.includes(player.id) ? 1 : 0,
   }));
 
-  playersWithIndex.sort((left, right) => {
+  const realPlayers = playersWithIndex.filter(
+    (player) => !player.playerId.startsWith(VIRTUAL_PLAYER_ID_PREFIX),
+  );
+  const rankedPlayers = realPlayers.length > 0 ? realPlayers : playersWithIndex;
+
+  rankedPlayers.sort((left, right) => {
     if (right.score !== left.score) {
       return right.score - left.score;
     }
@@ -84,8 +91,8 @@ export function buildWordChainSessionResult(
 
   let currentRank = 1;
 
-  const results: SessionResultRow[] = playersWithIndex.map((player, index) => {
-    if (index > 0 && player.score !== playersWithIndex[index - 1]!.score) {
+  const results: SessionResultRow[] = rankedPlayers.map((player, index) => {
+    if (index > 0 && player.score !== rankedPlayers[index - 1]!.score) {
       currentRank += 1;
     }
 
@@ -100,7 +107,9 @@ export function buildWordChainSessionResult(
   return {
     sessionId,
     gameKey: "word-chain",
-    winnerIds: calculated.winnerIds,
+    winnerIds: calculated.winnerIds.filter(
+      (winnerId) => !winnerId.startsWith(VIRTUAL_PLAYER_ID_PREFIX),
+    ),
     results,
   };
 }

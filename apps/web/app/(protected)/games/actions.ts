@@ -3,13 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppSession } from "@/lib/auth";
-import { getActiveRoomForUser } from "@/lib/platform";
+import { ensureCanonicalGameSettings, getActiveRoomForUser } from "@/lib/platform";
 import { getRoomPath } from "@/lib/room-routes";
 import { createSupabaseAdminClient } from "@/lib/supabase/config";
 
 export async function createRoomAction(formData: FormData) {
   const { user } = await requireAppSession();
   const gameId = String(formData.get("gameId") ?? "");
+
+  await ensureCanonicalGameSettings();
 
   if (!gameId) {
     throw new Error("Missing game id.");

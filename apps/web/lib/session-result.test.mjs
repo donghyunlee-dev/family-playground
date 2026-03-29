@@ -52,6 +52,29 @@ test("buildWordChainSessionResult derives winners when the state is unfinished",
   ]);
 });
 
+test("buildWordChainSessionResult excludes virtual players from persisted results", () => {
+  const state = createWordChainMatchState([
+    { id: "alice", name: "Alice", score: 0 },
+    { id: "bot:1", name: "Bot One", score: 0 },
+    { id: "bot:2", name: "Bot Two", score: 0 },
+  ]);
+
+  state.players[0].score = 3;
+  state.players[1].score = 5;
+  state.players[2].score = 4;
+  state.finished = true;
+  state.winnerIds = ["bot:1"];
+
+  const payload = buildWordChainSessionResult("session-bot", state);
+
+  assert.deepEqual(payload, {
+    sessionId: "session-bot",
+    gameKey: "word-chain",
+    winnerIds: [],
+    results: [{ playerId: "alice", score: 3, rank: 1, awardedPoints: 0 }],
+  });
+});
+
 test("parseSessionFinishPayload accepts a valid serialized payload", () => {
   const parsed = parseSessionFinishPayload(
     JSON.stringify({

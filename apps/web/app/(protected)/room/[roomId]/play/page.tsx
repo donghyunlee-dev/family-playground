@@ -41,6 +41,7 @@ export default async function RoomPlayPage({ params }: RoomPlayPageProps) {
 
   const isMember = room.players.some((player) => player.userId === user.id);
   const canFinish = room.hostUserId === user.id;
+  const isWordChain = room.gameKey === "word-chain";
 
   if (!isMember) {
     return (
@@ -71,13 +72,97 @@ export default async function RoomPlayPage({ params }: RoomPlayPageProps) {
     score: 0,
   }));
 
+  if (isWordChain) {
+    return (
+      <div className="mx-auto grid max-w-5xl gap-4 md:gap-6">
+        <section className="rounded-[1.8rem] border border-white/80 bg-[linear-gradient(135deg,#f4fff5_0%,#ffffff_46%,#eef5ff_100%)] p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.2em] text-[#0f9d58]">
+                PLAY ROOM
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-[#17324e] md:text-4xl">
+                {room.gameTitle}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#5d7088]">
+                단어 입력과 흐름이 중심이 되도록 플레이 화면을 단순하게 정리했습니다.
+              </p>
+            </div>
+            {isMember ? (
+              <form action={leaveRoomAction.bind(null, room.id)}>
+                <button
+                  className="w-full rounded-full border border-[#dbe7f3] bg-white px-4 py-2.5 text-sm font-medium text-[#29435c] transition hover:bg-[#f7fbff] md:w-auto"
+                  type="submit"
+                >
+                  방 나가기
+                </button>
+              </form>
+            ) : null}
+          </div>
+        </section>
+
+        <WordChainRoom
+          canFinish={canFinish}
+          currentUserId={user.id}
+          currentUserName={profile.displayName}
+          finishFormId={finishFormId}
+          players={gamePlayers}
+          roomId={room.id}
+          roomStatus={room.status}
+          sessionId={room.currentSessionId}
+        />
+
+        <details className="rounded-[1.6rem] border border-white/80 bg-white/92 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.05)]">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-[#17324e]">
+            방 정보와 참가자 보기
+          </summary>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="grid gap-2 text-sm text-[#5f6784]">
+              <div className="rounded-[1.4rem] bg-[#f4f9ff] px-4 py-3">
+                방장: {room.hostName}
+              </div>
+              <div className="rounded-[1.4rem] bg-[#f4f9ff] px-4 py-3">
+                세션: {room.currentSessionId}
+              </div>
+              <div className="rounded-[1.4rem] bg-[#f4f9ff] px-4 py-3">
+                실제 참가 인원: {room.players.length}/{room.maxPlayers}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              {room.players.map((player) => (
+                <article
+                  key={player.id}
+                  className="flex items-center justify-between rounded-[1.4rem] bg-[#f8fbff] px-4 py-3 text-sm"
+                >
+                  <div>
+                    <p className="font-medium text-[#26324b]">{player.displayName}</p>
+                    <p className="mt-1 text-xs tracking-[0.16em] text-[#4285f4]">
+                      {player.isHost ? "방장" : "참가자"}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#35516f]">
+                    {player.presenceStatus === "online"
+                      ? "접속 중"
+                      : player.presenceStatus === "away"
+                        ? "잠시 비움"
+                        : "상태 확인 중"}
+                  </span>
+                </article>
+              ))}
+            </div>
+          </div>
+        </details>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:gap-6 lg:grid-cols-[1.08fr_0.92fr]">
       <div className="grid gap-6">
         <SectionCard
           eyebrow="플레이"
           title={room.gameTitle}
-          description="게임이 시작되면 이 화면만 사용합니다."
+          description=" "
         >
           {room.gameKey === "word-chain" ? (
             <WordChainRoom

@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppSession } from "@/lib/auth";
-import { getActiveRoomForUser, getRoomById } from "@/lib/platform";
+import {
+  ensureCanonicalGameSettings,
+  getActiveRoomForUser,
+  getRoomById,
+} from "@/lib/platform";
 import { getRoomPath } from "@/lib/room-routes";
 import {
   parseSessionFinishPayload,
@@ -14,6 +18,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/config";
 
 export async function joinRoomAction(roomId: string) {
   const { user } = await requireAppSession();
+  await ensureCanonicalGameSettings();
   const room = await getRoomById(roomId);
 
   if (!room) {
@@ -56,6 +61,7 @@ export async function joinRoomAction(roomId: string) {
 
 export async function startRoomAction(roomId: string) {
   const { user } = await requireAppSession();
+  await ensureCanonicalGameSettings();
   const room = await getRoomById(roomId);
 
   if (!room) {
@@ -95,6 +101,7 @@ export async function startRoomAction(roomId: string) {
 
 export async function finishRoomAction(roomId: string, formData: FormData) {
   const { user } = await requireAppSession();
+  await ensureCanonicalGameSettings();
   const room = await getRoomById(roomId);
 
   if (!room) {
@@ -144,6 +151,7 @@ export async function finishRoomAction(roomId: string, formData: FormData) {
 
 export async function leaveRoomAction(roomId: string) {
   const { user } = await requireAppSession();
+  await ensureCanonicalGameSettings();
   const room = await getRoomById(roomId);
 
   if (!room) {

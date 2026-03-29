@@ -12,6 +12,67 @@ import { cache } from "react";
 import { fallbackGames } from "@/lib/mock";
 import { createSupabaseAdminClient } from "@/lib/supabase/config";
 
+const canonicalGameLimits = {
+  "memory-card": {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Turn-based card matching for 1 to 4 players.",
+  },
+  "word-chain": {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Realtime word relay with deterministic event handling for up to 4 players.",
+  },
+  ladder: {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Random ladder selection for quick family decisions.",
+  },
+  "spot-diff": {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Find visual differences together in timed rounds.",
+  },
+  "hidden-object": {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Search for hidden items inside a shared scene.",
+  },
+  yut: {
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: "Traditional Yut board gameplay for the family.",
+  },
+} as const;
+
+export const ensureCanonicalGameSettings = cache(async () => {
+  const supabase = createSupabaseAdminClient();
+
+  await Promise.all(
+    Object.entries(canonicalGameLimits).map(
+      ([gameKey, { minPlayers, maxPlayers, description }]) =>
+        supabase
+          .from("games")
+          .update({
+            min_players: minPlayers,
+            max_players: maxPlayers,
+            description,
+          })
+          .eq("game_key", gameKey),
+    ),
+  );
+});
+
+function normalizePlayerLimits(minPlayers: number, maxPlayers: number) {
+  const normalizedMaxPlayers = Math.min(maxPlayers, 4);
+  const normalizedMinPlayers = 1;
+
+  return {
+    minPlayers: normalizedMinPlayers,
+    maxPlayers: normalizedMaxPlayers,
+  };
+}
+
 function getDisplayName(user: User) {
   const metadata = user.user_metadata as Record<string, string | undefined>;
 
@@ -149,6 +210,8 @@ export const ensureFamilyAccess = cache(async (user: User) => {
 });
 
 export async function listGames(): Promise<GameCatalogEntry[]> {
+  await ensureCanonicalGameSettings();
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("games")
@@ -159,16 +222,20 @@ export async function listGames(): Promise<GameCatalogEntry[]> {
     return fallbackGames;
   }
 
-  return data.map((game) => ({
-    id: game.id,
-    gameKey: game.game_key,
-    title: game.title,
-    description: game.description,
-    thumbnailUrl: game.thumbnail_url,
-    minPlayers: game.min_players,
-    maxPlayers: game.max_players,
-    enabled: game.enabled,
-  }));
+  return data.map((game) => {
+    const limits = normalizePlayerLimits(game.min_players, game.max_players);
+
+    return {
+      id: game.id,
+      gameKey: game.game_key,
+      title: game.title,
+      description: game.description,
+      thumbnailUrl: game.thumbnail_url,
+      minPlayers: limits.minPlayers,
+      maxPlayers: limits.maxPlayers,
+      enabled: game.enabled,
+    };
+  });
 }
 
 export async function listGamesWithRoomState(): Promise<GameCatalogWithRoom[]> {
@@ -209,6 +276,8 @@ export async function getLeaderboard(limit = 5): Promise<ProfileSummary[]> {
 }
 
 export async function listOpenRooms(): Promise<RoomSummary[]> {
+  await ensureCanonicalGameSettings();
+
   const supabase = createSupabaseAdminClient();
   const { data: rooms, error: roomsError } = await supabase
     .from("game_rooms")
@@ -262,6 +331,8 @@ export async function listOpenRooms(): Promise<RoomSummary[]> {
 }
 
 export async function getRoomById(roomId: string): Promise<RoomSummary | null> {
+  await ensureCanonicalGameSettings();
+
   const supabase = createSupabaseAdminClient();
   const { data: room, error } = await supabase
     .from("game_rooms")
@@ -395,6 +466,11 @@ function mapRoom(
     avatar_url: string | null;
   }>,
 ) {
+  const limits = normalizePlayerLimits(
+    game?.min_players ?? 1,
+    game?.max_players ?? 4,
+  );
+
   const mappedPlayers: RoomPlayerSummary[] = players.map((player) => ({
     id: player.id,
     roomId: player.room_id,
@@ -422,8 +498,8 @@ function mapRoom(
     status: room.status,
     createdAt: room.created_at,
     currentSessionId: room.current_session_id,
-    minPlayers: game?.min_players ?? 1,
-    maxPlayers: game?.max_players ?? 4,
+    minPlayers: limits.minPlayers,
+    maxPlayers: limits.maxPlayers,
     players: mappedPlayers,
   } satisfies RoomSummary;
 }

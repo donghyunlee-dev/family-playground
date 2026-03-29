@@ -216,9 +216,9 @@ using (true);
 
 insert into public.games (game_key, title, description, min_players, max_players, enabled, sort_order)
 values
-  ('memory-card', 'Memory Card', 'Turn-based card matching for 2 to 4 players.', 2, 4, true, 10),
-  ('word-chain', 'Word Chain', 'Realtime word relay with deterministic event handling.', 2, 8, true, 20),
-  ('ladder', 'Ladder', 'Random ladder selection for quick family decisions.', 1, 8, false, 30),
+  ('memory-card', 'Memory Card', 'Turn-based card matching for 1 to 4 players.', 1, 4, true, 10),
+  ('word-chain', 'Word Chain', 'Realtime word relay with deterministic event handling for up to 4 players.', 1, 4, true, 20),
+  ('ladder', 'Ladder', 'Random ladder selection for quick family decisions.', 1, 4, false, 30),
   ('spot-diff', 'Spot the Difference', 'Find visual differences together in timed rounds.', 1, 4, false, 40),
   ('hidden-object', 'Hidden Object', 'Search for hidden items inside a shared scene.', 1, 4, false, 50),
   ('yut', 'Yut', 'Traditional Yut board gameplay for the family.', 2, 4, false, 60)

@@ -31,6 +31,8 @@ This phase covers the first MVP games.
 - show scores
 - show game board
 - Word Chain must support a mobile-first top-down layout that makes the submitted words feel like connected train cars
+- Word Chain play view must keep the word input and current turn area as the dominant visual focus
+- room metadata and participant context should move to compact top or bottom support areas instead of competing with the game board
 - when a required starting character exists, the input must render it as a fixed prefix before the editable suffix field
 - validation feedback must distinguish between local rule failures and dictionary lookup failures
 
@@ -41,3 +43,4 @@ This phase covers the first MVP games.
 - Korean words must be checked against a Korean dictionary provider
 - English words must be checked against an English dictionary provider
 - mixed-language submissions must be rejected unless a future mode explicitly supports them
+- temporary local test mode may suspend external dictionary checks when multiplayer validation is blocked and must be documented as a non-final state

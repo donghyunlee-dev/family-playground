@@ -85,15 +85,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 FAMILY PLAYGROUND
               </p>
               <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.06em] text-[#17324e] md:text-6xl">
-                Google Play처럼
+                가족이 함께 웃고
                 <br />
-                바로 고르고 바로 시작하는
+                같이 놀 수 있는
                 <br />
-                가족 게임 홈
+                우리만의 게임 공간
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#587089] md:text-base md:leading-7">
-                혼자 먼저 들어와도 방을 열고 플레이 화면으로 이동할 수 있습니다.
-                가족이 추가로 들어오면 같은 방에서 이어서 즐길 수 있습니다.
+                집에서 함께 시간을 보내고 싶을 때, 익숙한 가족 계정으로 들어와
+                간단한 게임을 바로 시작할 수 있도록 만든 작은 놀이터입니다.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 <div className="rounded-full bg-[#dff5e7] px-4 py-2 text-sm font-medium text-[#0f5132]">

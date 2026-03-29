@@ -13,6 +13,8 @@ In Progress
 - [ ] Add game logic tests.
 - [x] Add dictionary-backed validation API for Word Chain.
 - [x] Update Word Chain room UI to a mobile-first top-down train layout.
+- [ ] Rework Word Chain play screen so gameplay dominates and room metadata moves to compact support areas.
+- [ ] Add temporary solo test mode with three virtual players while external dictionary validation is suspended.
 - [ ] Verify multiplayer playability and result calculation.
 - [ ] Write completion summary and commit/push.
 
@@ -30,3 +32,5 @@ In Progress
 - this phase cannot be closed until Phase 03 realtime sync is in place
 - current implementation slice will focus on making `word-chain` testable first so room flow can be exercised with a real game loop
 - current blocker under active investigation: external dictionary provider credentials are required for full Korean dictionary verification in deployed environments
+- current in-flight adjustment: the play screen is being rebalanced so the word input becomes the visual center and room/player details move to compact support panels
+- current in-flight adjustment: solo room testing is being unlocked by injecting three virtual players and bypassing external dictionary checks temporarily

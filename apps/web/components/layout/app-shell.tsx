@@ -32,9 +32,6 @@ export function AppShell({ profile, children }: AppShellProps) {
                 <p className="text-[11px] font-semibold tracking-[0.3em] text-[#0f9d58] md:text-xs">
                   FAMILY PLAYGROUND
                 </p>
-                <p className="mt-2 text-sm text-[#5f7390]">
-                  계정은 로그인 후 24시간 동안 유지됩니다.
-                </p>
               </div>
               <Link
                 className="rounded-full border border-[#dbe7f3] bg-white/90 px-4 py-2 text-sm font-medium text-[#29435c] transition hover:bg-white"
