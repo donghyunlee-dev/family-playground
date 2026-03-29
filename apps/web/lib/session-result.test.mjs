@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createWordChainMatchState } from "@family-playground/game-word-chain";
+import {
+  applyWordChainEvent,
+  createWordChainMatchState,
+} from "@family-playground/game-word-chain";
 import {
   buildWordChainSessionResult,
   parseSessionFinishPayload,
@@ -14,22 +17,22 @@ test("buildWordChainSessionResult creates ranked results with awarded points", (
     { id: "carol", name: "Carol", score: 0 },
   ]);
 
-  state.players[0].score = 5;
-  state.players[1].score = 3;
-  state.players[2].score = 5;
+  state.players[0].eliminated = false;
+  state.players[1].eliminated = true;
+  state.players[2].eliminated = true;
   state.finished = true;
-  state.winnerIds = ["alice", "carol"];
+  state.winnerIds = ["alice"];
 
   const payload = buildWordChainSessionResult("session-1", state);
 
   assert.deepEqual(payload, {
     sessionId: "session-1",
     gameKey: "word-chain",
-    winnerIds: ["alice", "carol"],
+    winnerIds: ["alice"],
     results: [
-      { playerId: "alice", score: 5, rank: 1, awardedPoints: 1 },
-      { playerId: "carol", score: 5, rank: 1, awardedPoints: 1 },
-      { playerId: "bob", score: 3, rank: 2, awardedPoints: 0 },
+      { playerId: "alice", score: 1, rank: 1, awardedPoints: 1 },
+      { playerId: "bob", score: 0, rank: 2, awardedPoints: 0 },
+      { playerId: "carol", score: 0, rank: 2, awardedPoints: 0 },
     ],
   });
 });
@@ -40,15 +43,14 @@ test("buildWordChainSessionResult derives winners when the state is unfinished",
     { id: "bob", name: "Bob", score: 0 },
   ]);
 
-  state.players[0].score = 4;
-  state.players[1].score = 2;
+  state.players[1].eliminated = true;
 
   const payload = buildWordChainSessionResult("session-2", state);
 
   assert.deepEqual(payload.winnerIds, ["alice"]);
   assert.deepEqual(payload.results, [
-    { playerId: "alice", score: 4, rank: 1, awardedPoints: 1 },
-    { playerId: "bob", score: 2, rank: 2, awardedPoints: 0 },
+    { playerId: "alice", score: 1, rank: 1, awardedPoints: 1 },
+    { playerId: "bob", score: 0, rank: 2, awardedPoints: 0 },
   ]);
 });
 
@@ -59,9 +61,9 @@ test("buildWordChainSessionResult excludes virtual players from persisted result
     { id: "bot:2", name: "Bot Two", score: 0 },
   ]);
 
-  state.players[0].score = 3;
-  state.players[1].score = 5;
-  state.players[2].score = 4;
+  state.players[0].eliminated = false;
+  state.players[1].eliminated = false;
+  state.players[2].eliminated = true;
   state.finished = true;
   state.winnerIds = ["bot:1"];
 
@@ -71,8 +73,29 @@ test("buildWordChainSessionResult excludes virtual players from persisted result
     sessionId: "session-bot",
     gameKey: "word-chain",
     winnerIds: [],
-    results: [{ playerId: "alice", score: 3, rank: 1, awardedPoints: 0 }],
+    results: [{ playerId: "alice", score: 0, rank: 1, awardedPoints: 0 }],
   });
+});
+
+test("last remaining player is preserved if a stray timeout is processed after finish edge", () => {
+  const state = createWordChainMatchState([
+    { id: "alice", name: "Alice", score: 0 },
+    { id: "bob", name: "Bob", score: 0 },
+  ]);
+
+  state.players[1].eliminated = true;
+  state.currentTurnIndex = 0;
+
+  const nextState = applyWordChainEvent(state, {
+    type: "timeout_turn",
+    playerId: "alice",
+  });
+
+  const payload = buildWordChainSessionResult("session-edge", nextState);
+
+  assert.equal(nextState.finished, true);
+  assert.deepEqual(nextState.winnerIds, ["alice"]);
+  assert.deepEqual(payload.winnerIds, ["alice"]);
 });
 
 test("parseSessionFinishPayload accepts a valid serialized payload", () => {
@@ -82,8 +105,8 @@ test("parseSessionFinishPayload accepts a valid serialized payload", () => {
       gameKey: "word-chain",
       winnerIds: ["alice"],
       results: [
-        { playerId: "alice", score: 5, rank: 1, awardedPoints: 1 },
-        { playerId: "bob", score: 2, rank: 2, awardedPoints: 0 },
+        { playerId: "alice", score: 1, rank: 1, awardedPoints: 1 },
+        { playerId: "bob", score: 0, rank: 2, awardedPoints: 0 },
       ],
     }),
   );
@@ -93,8 +116,8 @@ test("parseSessionFinishPayload accepts a valid serialized payload", () => {
     gameKey: "word-chain",
     winnerIds: ["alice"],
     results: [
-      { playerId: "alice", score: 5, rank: 1, awardedPoints: 1 },
-      { playerId: "bob", score: 2, rank: 2, awardedPoints: 0 },
+      { playerId: "alice", score: 1, rank: 1, awardedPoints: 1 },
+      { playerId: "bob", score: 0, rank: 2, awardedPoints: 0 },
     ],
   });
 });
@@ -120,8 +143,8 @@ test("toSessionFinishRpcPayload converts client payload keys for the RPC", () =>
     gameKey: "word-chain",
     winnerIds: ["alice"],
     results: [
-      { playerId: "alice", score: 5, rank: 1, awardedPoints: 1 },
-      { playerId: "bob", score: 2, rank: 2, awardedPoints: 0 },
+      { playerId: "alice", score: 1, rank: 1, awardedPoints: 1 },
+      { playerId: "bob", score: 0, rank: 2, awardedPoints: 0 },
     ],
   });
 
@@ -130,8 +153,8 @@ test("toSessionFinishRpcPayload converts client payload keys for the RPC", () =>
     game_key: "word-chain",
     winner_ids: ["alice"],
     results: [
-      { player_id: "alice", score: 5, rank: 1, awarded_points: 1 },
-      { player_id: "bob", score: 2, rank: 2, awarded_points: 0 },
+      { player_id: "alice", score: 1, rank: 1, awarded_points: 1 },
+      { player_id: "bob", score: 0, rank: 2, awarded_points: 0 },
     ],
   });
 });

@@ -15,6 +15,7 @@ import type { GamePlayer } from "@family-playground/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import type { ValidateWordResponse } from "@/lib/word-chain-dictionary/types";
 import {
   applyWordChainFinalResult,
   shouldIgnoreWordChainBroadcastSession,
@@ -43,36 +44,14 @@ interface WordChainBroadcastPayload {
 }
 
 const BOT_ID_PREFIX = "bot:";
+const TURN_TIMEOUT_SECONDS = 20;
 const VIRTUAL_PLAYERS: GamePlayer[] = [
   { id: `${BOT_ID_PREFIX}1`, name: "가상 지우", score: 0 },
   { id: `${BOT_ID_PREFIX}2`, name: "가상 서준", score: 0 },
   { id: `${BOT_ID_PREFIX}3`, name: "가상 하린", score: 0 },
 ];
-const BOT_OPENERS = [
-  "가족",
-  "놀이",
-  "친구",
-  "기차",
-  "웃음",
-  "모험",
-  "마음",
-  "노래",
-];
-const HANGUL_SUFFIXES = [
-  "나",
-  "다",
-  "라",
-  "마",
-  "바",
-  "사",
-  "아",
-  "자",
-  "차",
-  "카",
-  "타",
-  "파",
-  "하",
-];
+const BOT_OPENERS = ["가족방", "놀이방", "친구들", "웃음꽃", "모험가", "노래방", "마음씨"];
+const HANGUL_SUFFIXES = ["나", "다", "라", "마", "바", "사", "아", "자", "차"];
 const HANGUL_EXTENSIONS = ["리", "미", "소", "루", "비", "주"];
 const EN_SUFFIXES = ["ra", "ne", "ta", "ro", "mi", "sa", "li", "no"];
 const EN_EXTENSIONS = ["n", "r", "s", "t", "m", "l"];
@@ -82,26 +61,28 @@ function isVirtualPlayerId(playerId: string) {
 }
 
 function createPlayablePlayers(players: GamePlayer[]) {
-  if (players.length === 1) {
-    return [...players, ...VIRTUAL_PLAYERS];
-  }
-
-  return players;
+  return players.length === 1 ? [...players, ...VIRTUAL_PLAYERS] : players;
 }
 
-function buildBotWord(
+function buildBotWordCandidates(
   requiredChar: string | null,
   usedWords: string[],
   botId: string,
 ) {
   const botIndex = Number(botId.replace(BOT_ID_PREFIX, "")) || 0;
+  const candidates: string[] = [];
 
   if (!requiredChar) {
-    return (
-      BOT_OPENERS.find((word, index) => !usedWords.includes(word) && index >= botIndex - 1) ??
-      BOT_OPENERS.find((word) => !usedWords.includes(word)) ??
-      `시작${botIndex}`
-    );
+    for (let index = 0; index < BOT_OPENERS.length; index += 1) {
+      const candidate = BOT_OPENERS[(botIndex + index - 1 + BOT_OPENERS.length) % BOT_OPENERS.length]!;
+
+      if (!usedWords.includes(candidate) && !candidates.includes(candidate)) {
+        candidates.push(candidate);
+      }
+    }
+
+    candidates.push(`시작점${botIndex}`);
+    return candidates;
   }
 
   const isEnglishPrefix = /^[a-z]$/i.test(requiredChar);
@@ -114,13 +95,38 @@ function buildBotWord(
       const extension = round === 0 ? "" : extensions[(round + index) % extensions.length]!;
       const candidate = `${requiredChar}${suffix}${extension}`;
 
-      if (!usedWords.includes(candidate)) {
-        return candidate;
+      if (candidate.length >= 3 && !usedWords.includes(candidate) && !candidates.includes(candidate)) {
+        candidates.push(candidate);
       }
     }
   }
 
-  return `${requiredChar}${isEnglishPrefix ? "go" : "라"}${botIndex}`;
+  candidates.push(`${requiredChar}${isEnglishPrefix ? "go" : "라라"}${botIndex}`);
+  return candidates;
+}
+
+async function validateWordWithDictionary(
+  word: string,
+  roomId: string,
+  sessionId: string | null,
+) {
+  const response = await fetch("/api/games/word-chain/validate-word", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      word,
+      roomId,
+      sessionId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("DICTIONARY_REQUEST_FAILED");
+  }
+
+  return (await response.json()) as ValidateWordResponse;
 }
 
 export function WordChainRoom({
@@ -146,20 +152,27 @@ export function WordChainRoom({
   const [helperText, setHelperText] = useState<string | null>(
     roomStatus === "playing"
       ? hasVirtualPlayers
-        ? "테스트 모드입니다. 내가 입력하지 않는 턴은 가상 플레이어가 자동으로 진행합니다."
-        : "내 차례가 오면 단어를 입력해 주세요."
-      : "방장이 게임 시작을 누르면 끝말잇기가 시작됩니다.",
+        ? "테스트 모드입니다. 빈 자리는 가상 플레이어가 채웁니다."
+        : "20초 안에 단어를 입력해야 합니다."
+      : "게임 시작을 기다리는 중입니다.",
   );
-  const [isSessionEnded, setIsSessionEnded] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isValidatingWord, setIsValidatingWord] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(TURN_TIMEOUT_SECONDS);
+  const [turnStartedAt, setTurnStartedAt] = useState(Date.now());
   const seenEventIdsRef = useRef<Set<string>>(new Set());
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const isSessionEndedRef = useRef(false);
   const previousSessionIdRef = useRef(sessionId);
+  const logContainerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    isSessionEndedRef.current = isSessionEnded;
-  }, [isSessionEnded]);
+  const currentTurnPlayer = state.players[state.currentTurnIndex] ?? null;
+  const isCurrentUserTurn = currentTurnPlayer?.id === currentUserId;
+  const submitDisabled =
+    roomStatus !== "playing" ||
+    !sessionId ||
+    state.finished ||
+    !isCurrentUserTurn ||
+    isValidatingWord;
 
   useEffect(() => {
     if (previousSessionIdRef.current === sessionId) {
@@ -167,34 +180,134 @@ export function WordChainRoom({
     }
 
     previousSessionIdRef.current = sessionId;
-    isSessionEndedRef.current = false;
-    setIsSessionEnded(false);
     setState(createWordChainMatchState(playablePlayers));
     setPendingWord("");
     setValidationError(null);
+    setRemainingSeconds(TURN_TIMEOUT_SECONDS);
+    setTurnStartedAt(Date.now());
     setHelperText(
       roomStatus === "playing"
         ? hasVirtualPlayers
-          ? "테스트 모드가 다시 시작되었습니다. 입력에 집중해 보세요."
-          : "게임이 시작되었습니다. 현재 차례인 사람이 단어를 제출해 주세요."
-        : "방장이 게임 시작을 누르면 끝말잇기가 시작됩니다.",
+          ? "테스트 모드가 다시 시작되었습니다."
+          : "20초 안에 단어를 입력해야 합니다."
+        : "게임 시작을 기다리는 중입니다.",
     );
     seenEventIdsRef.current = new Set();
   }, [hasVirtualPlayers, playablePlayers, roomStatus, sessionId]);
 
   useEffect(() => {
-    if (roomStatus === "playing") {
+    setRemainingSeconds(TURN_TIMEOUT_SECONDS);
+    setTurnStartedAt(Date.now());
+  }, [state.currentTurnIndex, state.entries.length, state.finished]);
+
+  useEffect(() => {
+    const container = logContainerRef.current;
+
+    if (!container) {
       return;
     }
 
-    if (!isSessionEndedRef.current) {
-      isSessionEndedRef.current = true;
-      setIsSessionEnded(true);
-      setHelperText(
-        "이번 라운드는 끝났습니다. 방장이 새 세션을 시작할 수 있습니다.",
-      );
+    container.scrollTop = container.scrollHeight;
+  }, [state.entries.length]);
+
+  useEffect(() => {
+    if (
+      roomStatus !== "playing" ||
+      state.finished ||
+      !currentTurnPlayer
+    ) {
+      return;
     }
-  }, [roomStatus]);
+
+    const intervalId = window.setInterval(() => {
+      const elapsedSeconds = Math.floor((Date.now() - turnStartedAt) / 1000);
+      const nextRemaining = Math.max(0, TURN_TIMEOUT_SECONDS - elapsedSeconds);
+
+      setRemainingSeconds(nextRemaining);
+
+      if (
+        nextRemaining === 0 &&
+        (isCurrentUserTurn || isVirtualPlayerId(currentTurnPlayer.id))
+      ) {
+        setState((current) =>
+          applyWordChainEvent(current, {
+            type: "timeout_turn",
+            playerId: currentTurnPlayer.id,
+          }),
+        );
+        setPendingWord("");
+        setValidationError(null);
+        setHelperText(`${currentTurnPlayer.name} 님이 시간 초과로 탈락했습니다.`);
+      }
+    }, 250);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [currentTurnPlayer, isCurrentUserTurn, roomStatus, state.finished, turnStartedAt]);
+
+  useEffect(() => {
+    if (
+      roomStatus !== "playing" ||
+      !hasVirtualPlayers ||
+      !currentTurnPlayer ||
+      !isVirtualPlayerId(currentTurnPlayer.id) ||
+      state.finished
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const timeoutId = window.setTimeout(async () => {
+      const botCandidates = buildBotWordCandidates(
+        state.requiredChar,
+        state.usedWords,
+        currentTurnPlayer.id,
+      );
+
+      for (const candidate of botCandidates) {
+        try {
+          const dictionaryValidation = await validateWordWithDictionary(candidate, roomId, sessionId);
+
+          if (!dictionaryValidation.ok) {
+            continue;
+          }
+
+          if (cancelled) {
+            return;
+          }
+
+          setState((current) =>
+            applyWordChainEvent(current, {
+              type: "submit_word",
+              playerId: currentTurnPlayer.id,
+              word: dictionaryValidation.normalizedWord,
+            }),
+          );
+          setHelperText(
+            `${currentTurnPlayer.name} 님이 "${dictionaryValidation.normalizedWord}"를 입력했습니다.`,
+          );
+          setValidationError(null);
+          return;
+        } catch {
+          continue;
+        }
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      setHelperText(`${currentTurnPlayer.name} 님이 입력할 단어를 찾고 있습니다.`);
+      setValidationError(null);
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [currentTurnPlayer, hasVirtualPlayers, roomId, roomStatus, sessionId, state.finished, state.requiredChar, state.usedWords]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -211,7 +324,6 @@ export function WordChainRoom({
           !gamePayload ||
           gamePayload.game_key !== "word-chain" ||
           shouldIgnoreWordChainBroadcastSession(gamePayload.session_id, sessionId) ||
-          isSessionEndedRef.current ||
           seenEventIdsRef.current.has(gamePayload.event_id)
         ) {
           return;
@@ -234,14 +346,12 @@ export function WordChainRoom({
           return;
         }
 
-        isSessionEndedRef.current = false;
-        setIsSessionEnded(false);
         setPendingWord("");
         setValidationError(null);
+        setRemainingSeconds(TURN_TIMEOUT_SECONDS);
+        setTurnStartedAt(Date.now());
         setHelperText(
-          hasVirtualPlayers
-            ? "테스트 모드가 시작되었습니다. 가상 플레이어가 빈 자리를 채웁니다."
-            : "게임이 시작되었습니다. 현재 차례인 사람이 단어를 제출해 주세요.",
+          hasVirtualPlayers ? "테스트 모드가 시작되었습니다." : "라운드가 시작되었습니다.",
         );
       })
       .on("broadcast", { event: "game_end" }, ({ payload }) => {
@@ -259,18 +369,12 @@ export function WordChainRoom({
           return;
         }
 
-        isSessionEndedRef.current = true;
-        setIsSessionEnded(true);
         setPendingWord("");
         setValidationError(null);
         setState((current) =>
           applyWordChainFinalResult(current, gamePayload, sessionId),
         );
-        setHelperText(
-          gamePayload?.results?.length
-            ? "게임이 종료되었습니다. 서버 결과가 반영되었습니다."
-            : "이번 라운드는 끝났습니다. 방장이 새 세션을 시작할 수 있습니다.",
-        );
+        setHelperText("라운드가 끝났습니다.");
       });
 
     channel.subscribe();
@@ -281,60 +385,6 @@ export function WordChainRoom({
       channelRef.current = null;
     };
   }, [hasVirtualPlayers, roomId, sessionId]);
-
-  const currentTurnPlayer = state.players[state.currentTurnIndex] ?? null;
-  const isCurrentUserTurn = currentTurnPlayer?.id === currentUserId;
-  const submitDisabled =
-    roomStatus !== "playing" ||
-    !sessionId ||
-    isSessionEnded ||
-    state.finished ||
-    !isCurrentUserTurn;
-
-  useEffect(() => {
-    if (
-      roomStatus !== "playing" ||
-      !hasVirtualPlayers ||
-      !currentTurnPlayer ||
-      !isVirtualPlayerId(currentTurnPlayer.id) ||
-      isSessionEnded ||
-      state.finished
-    ) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      const botWord = buildBotWord(
-        state.requiredChar,
-        state.usedWords,
-        currentTurnPlayer.id,
-      );
-      const event: WordChainEvent = {
-        type: "submit_word",
-        playerId: currentTurnPlayer.id,
-        word: botWord,
-      };
-      const nextState = applyWordChainEvent(state, event);
-
-      setState(nextState);
-      setHelperText(
-        nextState.finished
-          ? "테스트 라운드가 끝났습니다. 아래 버튼으로 바로 다시 시작할 수 있습니다."
-          : `${currentTurnPlayer.name} 님이 "${botWord}"를 이어 붙였습니다.`,
-      );
-      setValidationError(null);
-    }, 900);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [
-    currentTurnPlayer,
-    hasVirtualPlayers,
-    isSessionEnded,
-    roomStatus,
-    state,
-  ]);
 
   const handleSubmitWord = async () => {
     if (submitDisabled || !sessionId) {
@@ -360,64 +410,75 @@ export function WordChainRoom({
 
     if (!localValidation.valid) {
       setValidationError(localValidation.message);
-      setHelperText("게임 규칙에 맞는 단어를 입력해 주세요.");
+      setHelperText("세 글자 이상, 규칙에 맞는 단어를 입력해 주세요.");
       return;
     }
 
     setValidationError(null);
-
-    const event: WordChainEvent = {
-      type: "submit_word",
-      playerId: currentUserId,
-      word: localValidation.normalizedWord,
-    };
-    const nextState = applyWordChainEvent(state, event);
-    const eventId = crypto.randomUUID();
-
-    seenEventIdsRef.current.add(eventId);
-    setState(nextState);
-    setPendingWord("");
-    setHelperText(
-      nextState.finished
-        ? hasVirtualPlayers
-          ? "테스트 라운드가 끝났습니다. 아래 버튼으로 바로 다시 시작할 수 있습니다."
-          : "라운드가 끝났습니다. 방장이 게임 종료를 눌러 세션을 마무리해 주세요."
-        : `${currentUserName} 님의 단어가 바로 반영되었습니다. 사전 검증은 잠시 멈춘 상태입니다.`,
-    );
-
-    if (hasVirtualPlayers) {
-      return;
-    }
-
-    const payload: WordChainBroadcastPayload = {
-      type: "word_chain_event",
-      game_key: "word-chain",
-      session_id: sessionId,
-      event_id: eventId,
-      event,
-    };
+    setIsValidatingWord(true);
 
     try {
-      await channelRef.current?.send({
-        type: "broadcast",
-        event: "game_event",
-        payload: createRoomRealtimeMessage(
-          "game_event",
-          roomId,
-          currentUserId,
-          payload,
-        ),
-      });
+      const dictionaryValidation = await validateWordWithDictionary(
+        localValidation.normalizedWord,
+        roomId,
+        sessionId,
+      );
 
-      await channelRef.current?.send({
-        type: "broadcast",
-        event: "turn_update",
-        payload: createRoomRealtimeMessage("turn_update", roomId, currentUserId, {
-          player_id: nextState.players[nextState.currentTurnIndex]?.id ?? currentUserId,
-        }),
-      });
+      if (!dictionaryValidation.ok) {
+        setValidationError(dictionaryValidation.message);
+        setHelperText("국어사전에서 확인된 단어만 입력할 수 있습니다.");
+        return;
+      }
+
+      const event: WordChainEvent = {
+        type: "submit_word",
+        playerId: currentUserId,
+        word: dictionaryValidation.normalizedWord,
+      };
+      const nextState = applyWordChainEvent(state, event);
+      const eventId = crypto.randomUUID();
+
+      seenEventIdsRef.current.add(eventId);
+      setState(nextState);
+      setPendingWord("");
+      setHelperText(
+        nextState.finished
+          ? "라운드가 끝났습니다."
+          : `${currentUserName} 님의 단어가 반영되었습니다.`,
+      );
+
+      if (hasVirtualPlayers) {
+        return;
+      }
+
+      const payload: WordChainBroadcastPayload = {
+        type: "word_chain_event",
+        game_key: "word-chain",
+        session_id: sessionId,
+        event_id: eventId,
+        event,
+      };
+
+      try {
+        await channelRef.current?.send({
+          type: "broadcast",
+          event: "game_event",
+          payload: createRoomRealtimeMessage(
+            "game_event",
+            roomId,
+            currentUserId,
+            payload,
+          ),
+        });
+      } catch {
+        setHelperText("단어는 반영되었지만 실시간 동기화에 실패했습니다.");
+      }
     } catch {
-      setHelperText("단어는 반영되었지만 실시간 동기화에 실패했습니다.");
+      setValidationError("국어사전 검증 서버에 연결할 수 없습니다.");
+      setHelperText("사전 검증 후 다시 시도해 주세요.");
+      return;
+    } finally {
+      setIsValidatingWord(false);
     }
   };
 
@@ -425,10 +486,10 @@ export function WordChainRoom({
     setState(createWordChainMatchState(playablePlayers));
     setPendingWord("");
     setValidationError(null);
-    setIsSessionEnded(false);
-    isSessionEndedRef.current = false;
-    seenEventIdsRef.current = new Set();
+    setRemainingSeconds(TURN_TIMEOUT_SECONDS);
+    setTurnStartedAt(Date.now());
     setHelperText("테스트 라운드를 다시 시작했습니다.");
+    seenEventIdsRef.current = new Set();
   };
 
   const winners =
@@ -466,216 +527,205 @@ export function WordChainRoom({
     form?.requestSubmit();
   };
 
-  const latestWord = state.usedWords.at(-1) ?? null;
-  const inputPrefix = state.requiredChar ?? "";
+  const inputPrefix = state.requiredChar ?? null;
+  const supportMessage = validationError ?? state.lastError ?? helperText;
 
   return (
-    <div className="grid gap-4">
-      <section className="rounded-[1.4rem] bg-[#edf6ff] px-4 py-3">
-        <div className="flex flex-wrap gap-2 text-sm">
-          <span className="rounded-full bg-white px-3 py-1.5 text-[#35516f]">
-            현재 차례 {currentTurnPlayer?.name ?? "대기 중"}
-          </span>
-          <span className="rounded-full bg-white px-3 py-1.5 text-[#35516f]">
-            {state.turnCount}/{state.maxTurns}턴
-          </span>
-          <span className="rounded-full bg-white px-3 py-1.5 text-[#35516f]">
-            {state.requiredChar ? `시작 글자 ${state.requiredChar}` : "첫 단어 입력"}
-          </span>
-          {hasVirtualPlayers ? (
-            <span className="rounded-full bg-[#dff5e7] px-3 py-1.5 text-[#0f5132]">
-              테스트 모드
-            </span>
-          ) : null}
+    <div className="mx-auto h-[calc(100vh-13rem)] w-full max-w-6xl min-h-[560px] pb-48 md:h-[calc(100vh-11.5rem)] md:min-h-[640px] md:pb-40">
+      <section className="flex h-full w-full flex-col rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,#183456_0%,#0c1220_55%,#090d16_100%)] px-4 py-5 text-white shadow-[0_30px_80px_rgba(2,6,23,0.32)] md:px-6 md:py-6">
+        <div className="mb-4 text-center">
+          <p className="text-base font-semibold tracking-[0.08em] text-sky-300 md:text-lg">
+            끝말 잇기 게임
+          </p>
         </div>
-      </section>
 
-      <section className="rounded-[2rem] bg-[linear-gradient(180deg,#fffdf8_0%,#f8fbff_100%)] p-4 shadow-[0_22px_60px_rgba(15,23,42,0.08)] md:p-6">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <p className="text-sm font-medium tracking-[0.16em] text-[#4285f4]">
-              WORD CHAIN
-            </p>
-            <h3 className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[#17324e] md:text-4xl">
-              {state.finished
-                ? "라운드가 끝났습니다"
-                : isCurrentUserTurn
-                  ? "지금 단어를 입력해 주세요"
-                  : `${currentTurnPlayer?.name ?? "다른 플레이어"} 님의 차례입니다`}
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-[#5a7085] md:text-base">
-              {latestWord
-                ? `직전 단어는 "${latestWord}" 입니다. 이어지는 단어를 완성해 보세요.`
-                : "첫 단어를 입력하면 아래 기차가 이어집니다."}
-            </p>
-          </div>
-
-          <div className="mt-6 rounded-[2rem] border border-[#d9e8f6] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.06)] md:p-5">
-            <div className="grid gap-4">
-              <div className="rounded-[1.4rem] bg-[#f4f9ff] px-4 py-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                  {inputPrefix ? (
-                    <div className="shrink-0 rounded-[1.2rem] bg-[#ffd666] px-5 py-4 text-center text-2xl font-semibold text-[#25314b]">
-                      {inputPrefix}
-                    </div>
-                  ) : null}
-                  <input
-                    className="min-w-0 flex-1 rounded-[1.2rem] border border-transparent bg-white px-4 py-4 text-lg text-[#17324e] outline-none placeholder:text-[#8ba0bd] focus:border-[#bfd9f1]"
-                    disabled={submitDisabled}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-
-                      setValidationError(null);
-
-                      if (inputPrefix && nextValue.startsWith(inputPrefix)) {
-                        setPendingWord(nextValue.slice(inputPrefix.length));
-                        return;
-                      }
-
-                      setPendingWord(nextValue);
-                    }}
-                    placeholder={
-                      inputPrefix ? "이어질 글자를 입력해 주세요" : "첫 단어를 입력해 주세요"
-                    }
-                    value={pendingWord}
-                  />
-                  <button
-                    className="rounded-full bg-[#22c55e] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={submitDisabled}
-                    onClick={handleSubmitWord}
-                    type="button"
-                  >
-                    단어 제출
-                  </button>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[#60728f]">
-                  <span>
-                    {inputPrefix
-                      ? `${inputPrefix} 뒤에 이어질 글자만 입력합니다.`
-                      : "첫 단어는 자유롭게 시작할 수 있습니다."}
-                  </span>
-                  <span>{isCurrentUserTurn ? "입력 가능" : "대기 중"}</span>
-                </div>
-              </div>
-
-              {helperText ? (
-                <p className="text-sm text-[#35516f]">{helperText}</p>
-              ) : null}
-              {validationError ? (
-                <p className="text-sm text-[#b91c1c]">{validationError}</p>
-              ) : null}
-              {state.lastError ? (
-                <p className="text-sm text-[#b91c1c]">{state.lastError}</p>
-              ) : null}
-
-              <div className="rounded-[1.6rem] bg-[linear-gradient(180deg,#fff9ec_0%,#fff5dd_100%)] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <h4 className="text-lg font-semibold text-[#26324b]">단어 기차</h4>
-                  <span className="rounded-full bg-white px-3 py-1 text-sm text-[#5f6784]">
-                    {state.usedWords.length}칸
-                  </span>
-                </div>
-                {state.usedWords.length === 0 ? (
-                  <p className="mt-3 text-sm text-[#5f6784]">
-                    아직 제출된 단어가 없습니다. 첫 단어를 입력하면 아래로 이어집니다.
-                  </p>
-                ) : (
-                  <div className="mt-4 grid gap-3">
-                    {state.usedWords.map((word, index) => (
-                      <div key={`${word}-${index}`} className="relative pl-8">
-                        {index > 0 ? (
-                          <div className="absolute left-[0.9rem] top-[-1rem] h-4 w-px bg-[#f2b64b]" />
-                        ) : null}
-                        <div className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-[#f59e0b] bg-white" />
-                        <article
-                          className={`rounded-[1.4rem] border px-4 py-3 shadow-[0_10px_30px_rgba(209,157,56,0.12)] ${
-                            index === state.usedWords.length - 1
-                              ? "border-[#f59e0b] bg-[#fff0c2]"
-                              : "border-[#f7ddb2] bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-xs tracking-[0.16em] text-[#b7791f]">
-                              {index === 0 ? "출발 칸" : `${index + 1}번째 칸`}
-                            </p>
-                            {index === state.usedWords.length - 1 ? (
-                              <span className="rounded-full bg-white px-2 py-1 text-[11px] text-[#8b5b14]">
-                                최신 단어
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-2 text-lg font-semibold text-[#26324b]">{word}</p>
-                        </article>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[1.6rem] bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {state.players.map((player) => {
             const isCurrentTurn = player.id === currentTurnPlayer?.id;
-            const isVirtual = isVirtualPlayerId(player.id);
+            const isWinner = state.finished && state.winnerIds.includes(player.id);
 
             return (
-              <article
+              <div
                 key={player.id}
-                className={`min-w-[132px] rounded-[1.3rem] px-4 py-3 text-sm ${
-                  isCurrentTurn
-                    ? "bg-[#dff5e7] text-[#0f5132]"
-                    : "bg-[#f4f9ff] text-[#35516f]"
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] ${
+                  player.eliminated
+                    ? "bg-white/5 text-slate-500 line-through"
+                    : isWinner
+                      ? "bg-[#dff5e7] font-semibold text-[#0f5132]"
+                      : isCurrentTurn
+                    ? "bg-[#dff5e7] font-semibold text-[#0f5132]"
+                      : "bg-white/8 text-slate-200"
                 }`}
               >
-                <p className="font-semibold">
-                  {player.name} {isVirtual ? "(가상)" : ""}
-                </p>
-                <p className="mt-1">점수 {player.score}</p>
-              </article>
+                {player.name}
+              </div>
             );
           })}
         </div>
 
-        {winners.length > 0 ? (
-          <div className="mt-4 rounded-[1.4rem] bg-[#ddf7e8] px-4 py-3 text-sm text-[#156c4c]">
-            승리: {winners.map((winner) => winner.name).join(", ")}
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {hasVirtualPlayers ? (
-            <button
-              className="rounded-full bg-[#17324e] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#244a6e]"
-              onClick={handleRestartLocalRound}
-              type="button"
+        <div className="mt-6 flex min-h-0 flex-1 flex-col rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.02)_100%)] p-4 md:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="w-16 shrink-0" />
+            <h2 className="flex-1 text-center text-lg font-semibold tracking-[-0.04em] md:text-2xl">
+              {state.finished ? "라운드 종료" : "단어 입력"}
+            </h2>
+            <span
+              className={`w-16 shrink-0 rounded-full px-3 py-1.5 text-center text-xs font-semibold ${
+                remainingSeconds <= 3 ? "bg-[#fecaca] text-[#7f1d1d]" : "bg-[#ffd666] text-[#25314b]"
+              }`}
             >
-              테스트 라운드 다시 시작
-            </button>
-          ) : null}
-          {canFinish && sessionId && finishFormId && !hasVirtualPlayers ? (
-            <>
-              <input form={finishFormId} name="sessionId" type="hidden" value={sessionId} />
-              <input
-                form={finishFormId}
-                name="resultPayload"
-                type="hidden"
-                value={finishPayload}
-              />
-              <button
-                className="rounded-full bg-[#fb923c] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#f97316]"
-                onClick={handleFinishSession}
-                type="button"
+              {remainingSeconds}초
+            </span>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-[1rem] border border-white/8 bg-white/5 px-3 py-2 text-xs md:text-sm">
+            {inputPrefix ? (
+              <span className="rounded-full bg-sky-400/15 px-2.5 py-1 font-semibold text-sky-100">
+                시작 글자 {inputPrefix}
+              </span>
+            ) : null}
+            {supportMessage ? (
+              <span
+                className={
+                  validationError || state.lastError ? "text-[#fca5a5]" : "text-slate-300"
+                }
               >
-                세션 종료
-              </button>
-            </>
-          ) : null}
+                {supportMessage}
+              </span>
+            ) : (
+              <span className="text-slate-400">세 글자 이상 단어를 입력해 주세요.</span>
+            )}
+          </div>
+
+          <div
+            ref={logContainerRef}
+            className="scrollbar-hidden mt-3 min-h-0 flex-1 overflow-y-auto rounded-[1.4rem] border border-white/8 bg-black/10 px-3 py-3 md:px-4"
+          >
+            {state.entries.length === 0 ? (
+              <div className="flex h-full items-center justify-center px-6 text-center text-slate-400">
+                아직 입력된 단어가 없습니다.
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {state.entries.map((entry, index) => {
+                  const speaker = state.players.find((player) => player.id === entry.playerId);
+                  const isCurrentUserEntry = entry.playerId === currentUserId;
+
+                  return (
+                    <div
+                      key={`${entry.playerId}-${entry.word}-${index}`}
+                      className={`flex items-center gap-2 text-sm ${
+                        isCurrentUserEntry ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                    {!isCurrentUserEntry ? (
+                      <span className="shrink-0 rounded-full bg-white/6 px-2.5 py-1 text-[11px] text-slate-300">
+                        {speaker?.name ?? "알 수 없음"}
+                      </span>
+                    ) : null}
+                      <div
+                        className={`rounded-full px-4 py-2 ${
+                          isCurrentUserEntry
+                            ? "bg-sky-400 text-slate-950"
+                            : "bg-white/10 text-white"
+                        }`}
+                      >
+                        {entry.word}
+                      </div>
+                      {isCurrentUserEntry ? (
+                        <span className="shrink-0 rounded-full bg-sky-400/15 px-2.5 py-1 text-[11px] text-sky-100">
+                          {speaker?.name ?? currentUserName}
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </section>
+
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-3 md:px-4 md:pb-4">
+        <section className="pointer-events-auto mx-auto w-full max-w-6xl rounded-[1.4rem] border border-white/10 bg-[rgba(10,15,26,0.92)] p-3 text-white shadow-[0_18px_40px_rgba(2,6,23,0.25)] backdrop-blur">
+          <div className="mb-2 flex flex-wrap gap-2">
+            {winners.length > 0 ? (
+              <div className="rounded-full bg-[#dff5e7] px-3 py-1.5 text-xs font-semibold text-[#0f5132]">
+                승리 {winners.map((winner) => winner.name).join(", ")}
+              </div>
+            ) : null}
+            {hasVirtualPlayers ? (
+              <button
+                className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/14"
+                onClick={handleRestartLocalRound}
+                type="button"
+              >
+                테스트 다시 시작
+              </button>
+            ) : null}
+            {hasVirtualPlayers ? (
+              <span className="rounded-full bg-[#dff5e7] px-3 py-1.5 text-xs font-semibold text-[#0f5132]">
+                테스트 모드
+              </span>
+            ) : null}
+            {canFinish && sessionId && finishFormId && !hasVirtualPlayers ? (
+              <>
+                <input form={finishFormId} name="sessionId" type="hidden" value={sessionId} />
+                <input
+                  form={finishFormId}
+                  name="resultPayload"
+                  type="hidden"
+                  value={finishPayload}
+                />
+                <button
+                  className="rounded-full bg-[#fb923c] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#f97316]"
+                  onClick={handleFinishSession}
+                  type="button"
+                >
+                  세션 종료
+                </button>
+              </>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            <div className="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-white/8 focus-within:border-sky-400">
+              {inputPrefix ? (
+                <span className="shrink-0 pl-4 text-sm font-semibold text-sky-200">{inputPrefix}</span>
+              ) : null}
+              <input
+                className={`min-w-0 flex-1 rounded-full bg-transparent py-3 text-base text-white outline-none placeholder:text-slate-400 ${
+                  inputPrefix ? "pl-2 pr-4" : "px-4"
+                }`}
+                disabled={submitDisabled}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+
+                  setValidationError(null);
+
+                  if (inputPrefix && nextValue.startsWith(inputPrefix)) {
+                    setPendingWord(nextValue.slice(inputPrefix.length));
+                    return;
+                  }
+
+                  setPendingWord(nextValue);
+                }}
+                placeholder={inputPrefix ? "이어질 글자를 입력" : "단어를 입력"}
+                value={pendingWord}
+              />
+            </div>
+            <button
+              className="rounded-full bg-[#22c55e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={submitDisabled}
+              onClick={handleSubmitWord}
+              type="button"
+            >
+              입력
+            </button>
+          </div>
+
+        </section>
+      </div>
     </div>
   );
 }

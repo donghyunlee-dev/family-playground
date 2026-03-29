@@ -33,3 +33,9 @@ test("validateWordAgainstDictionary allows bypass mode for development", async (
   assert.equal(result.ok, true);
   assert.equal(result.dictionarySource, "disabled");
 });
+
+test("validateWordAgainstDictionary rejects short words before provider calls", async () => {
+  const result = await validateWordAgainstDictionary("기차", "ko-en");
+  assert.equal(result.ok, false);
+  assert.equal(result.code, "WORD_TOO_SHORT");
+});

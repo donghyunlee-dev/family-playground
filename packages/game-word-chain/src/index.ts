@@ -5,15 +5,18 @@ export interface WordChainPlayerState extends GamePlayer {
   eliminated: boolean;
 }
 
+export interface WordChainEntry {
+  playerId: string;
+  word: string;
+}
+
 export interface WordChainState {
   players: WordChainPlayerState[];
   currentTurnIndex: number;
+  entries: WordChainEntry[];
   usedWords: string[];
   lastWord: string | null;
   requiredChar: string | null;
-  turnCount: number;
-  maxTurns: number;
-  targetScore: number;
   finished: boolean;
   winnerIds: string[];
   lastError: string | null;
@@ -26,6 +29,10 @@ export type WordChainEvent =
       word: string;
     }
   | {
+      type: "timeout_turn";
+      playerId: string;
+    }
+  | {
       type: "reset_match";
       players: GamePlayer[];
     };
@@ -34,45 +41,54 @@ function normalizeWord(word: string) {
   return word.trim().toLowerCase();
 }
 
-export function createWordChainMatchState(
-  players: GamePlayer[],
-  options?: {
-    maxTurns?: number;
-    targetScore?: number;
-  },
-): WordChainState {
+export function createWordChainMatchState(players: GamePlayer[]): WordChainState {
   return {
     players: players.map((player) => ({
       ...player,
+      score: 0,
       eliminated: false,
     })),
     currentTurnIndex: 0,
+    entries: [],
     usedWords: [],
     lastWord: null,
     requiredChar: null,
-    turnCount: 0,
-    maxTurns: options?.maxTurns ?? 12,
-    targetScore: options?.targetScore ?? 5,
     finished: false,
     winnerIds: [],
     lastError: null,
   };
 }
 
-function calculateWinners(players: WordChainPlayerState[]) {
-  const highestScore = Math.max(...players.map((player) => player.score), 0);
-
-  return players
-    .filter((player) => player.score === highestScore)
-    .map((player) => player.id);
+function getActivePlayers(players: WordChainPlayerState[]) {
+  return players.filter((player) => !player.eliminated);
 }
 
-export function getNextTurnIndex(state: WordChainState) {
-  if (state.players.length === 0) {
+function calculateWinners(players: WordChainPlayerState[]) {
+  const activePlayers = getActivePlayers(players);
+
+  if (activePlayers.length === 1) {
+    return [activePlayers[0]!.id];
+  }
+
+  return [];
+}
+
+export function getNextTurnIndex(state: WordChainState, players = state.players) {
+  if (players.length === 0) {
     return 0;
   }
 
-  return (state.currentTurnIndex + 1) % state.players.length;
+  let nextIndex = state.currentTurnIndex;
+
+  for (let step = 0; step < players.length; step += 1) {
+    nextIndex = (nextIndex + 1) % players.length;
+
+    if (!players[nextIndex]?.eliminated) {
+      return nextIndex;
+    }
+  }
+
+  return state.currentTurnIndex;
 }
 
 export function isValidWordSubmission(
@@ -99,10 +115,18 @@ export function isValidWordSubmission(
     };
   }
 
-  if (normalizedWord.length < 2) {
+  if (currentPlayer.eliminated) {
     return {
       valid: false,
-      message: "두 글자 이상 입력해 주세요.",
+      message: "탈락한 플레이어는 입력할 수 없습니다.",
+      normalizedWord,
+    };
+  }
+
+  if (normalizedWord.length < 3) {
+    return {
+      valid: false,
+      message: "세 글자 이상 입력해 주세요.",
       normalizedWord,
     };
   }
@@ -135,10 +159,48 @@ export function applyWordChainEvent(
   event: WordChainEvent,
 ): WordChainState {
   if (event.type === "reset_match") {
-    return createWordChainMatchState(event.players, {
-      maxTurns: state.maxTurns,
-      targetScore: state.targetScore,
-    });
+    return createWordChainMatchState(event.players);
+  }
+
+  if (event.type === "timeout_turn") {
+    const currentPlayer = state.players[state.currentTurnIndex];
+    const activePlayers = getActivePlayers(state.players);
+
+    if (!currentPlayer || currentPlayer.id !== event.playerId || currentPlayer.eliminated) {
+      return {
+        ...state,
+        lastError: "타임아웃을 처리할 수 없습니다.",
+      };
+    }
+
+    if (activePlayers.length <= 1) {
+      return {
+        ...state,
+        finished: true,
+        winnerIds: activePlayers.map((player) => player.id),
+        lastError: null,
+      };
+    }
+
+    const nextPlayers = state.players.map((player) =>
+      player.id === event.playerId
+        ? {
+            ...player,
+            eliminated: true,
+          }
+        : player,
+    );
+    const winnerIds = calculateWinners(nextPlayers);
+    const finished = winnerIds.length > 0;
+
+    return {
+      ...state,
+      players: nextPlayers,
+      currentTurnIndex: finished ? state.currentTurnIndex : getNextTurnIndex(state, nextPlayers),
+      finished,
+      winnerIds,
+      lastError: `${currentPlayer.name} 님이 시간 초과로 탈락했습니다.`,
+    };
   }
 
   const validation = isValidWordSubmission(state, event.playerId, event.word);
@@ -150,29 +212,21 @@ export function applyWordChainEvent(
     };
   }
 
-  const nextPlayers = state.players.map((player) =>
-    player.id === event.playerId
-      ? {
-          ...player,
-          score: player.score + 1,
-        }
-      : player,
-  );
-  const turnCount = state.turnCount + 1;
-  const finished =
-    nextPlayers.some((player) => player.score >= state.targetScore) ||
-    turnCount >= state.maxTurns;
-
   return {
     ...state,
-    players: nextPlayers,
+    entries: [
+      ...state.entries,
+      {
+        playerId: event.playerId,
+        word: validation.normalizedWord,
+      },
+    ],
     usedWords: [...state.usedWords, validation.normalizedWord],
     lastWord: validation.normalizedWord,
     requiredChar: validation.normalizedWord.slice(-1),
-    currentTurnIndex: finished ? state.currentTurnIndex : getNextTurnIndex(state),
-    turnCount,
-    finished,
-    winnerIds: finished ? calculateWinners(nextPlayers) : [],
+    currentTurnIndex: getNextTurnIndex(state),
+    finished: false,
+    winnerIds: [],
     lastError: null,
   };
 }
@@ -186,10 +240,14 @@ export const wordChainGame = defineGame<WordChainState, WordChainEvent>({
   createInitialState: () => createWordChainMatchState([]),
   applyEvent: applyWordChainEvent,
   isGameFinished: (state) => state.finished,
-  calculateResult: (state) => ({
-    winnerIds: state.finished ? state.winnerIds : calculateWinners(state.players),
-    scores: Object.fromEntries(
-      state.players.map((player) => [player.id, player.score]),
-    ),
-  }),
+  calculateResult: (state) => {
+    const winnerIds = state.finished ? state.winnerIds : calculateWinners(state.players);
+
+    return {
+      winnerIds,
+      scores: Object.fromEntries(
+        state.players.map((player) => [player.id, winnerIds.includes(player.id) ? 1 : 0]),
+      ),
+    };
+  },
 });

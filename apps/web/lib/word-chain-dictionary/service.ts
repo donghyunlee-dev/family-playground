@@ -273,10 +273,10 @@ export async function validateWordAgainstDictionary(
     return failure("EMPTY_WORD", "빈 단어는 제출할 수 없습니다.", "", "unknown");
   }
 
-  if (trimmedWord.length < 2) {
+  if (trimmedWord.length < 3) {
     return failure(
       "WORD_TOO_SHORT",
-      "두 글자 이상 입력해 주세요.",
+      "세 글자 이상 입력해 주세요.",
       trimmedWord,
       "unknown",
     );
