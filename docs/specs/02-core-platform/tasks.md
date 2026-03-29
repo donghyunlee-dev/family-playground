@@ -19,6 +19,8 @@ In Progress
 - [x] Move room lifecycle mutations into database RPC functions.
 - [x] Refresh the shell and catalog UI toward an App Store-style layout.
 - [x] Move the public entry flow to a visible game catalog on `/`.
+- [ ] Enforce 24-hour session expiration in protected and public authenticated flows.
+- [ ] Allow single-player room start and align game metadata to the updated room-size rules.
 - [ ] Verify authenticated navigation and room entry flow.
 - [ ] Write completion summary and commit/push.
 
@@ -35,3 +37,5 @@ In Progress
 - authenticated end-to-end room flow still needs browser verification with a signed-in family account
 - Phase 02 is functionally ahead of the original task list, but it is not fully closed until signed-in browser verification is recorded
 - current blocker under active investigation: room entry can still bounce users to `/login` when the browser session is not restored consistently after Google OAuth
+- current in-flight adjustment: authenticated sessions now need a strict 24-hour validity window instead of open-ended restoration
+- current in-flight adjustment: room start flow is being relaxed so a single family member can enter gameplay for supported games

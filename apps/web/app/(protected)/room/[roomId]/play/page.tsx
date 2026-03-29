@@ -103,7 +103,7 @@ export default async function RoomPlayPage({ params }: RoomPlayPageProps) {
         <SectionCard
           eyebrow="방 정보"
           title="게임 중인 방"
-          description="대기방과 분리된 플레이 전용 화면입니다."
+          description="혼자 시작했더라도 이 화면에서 바로 플레이를 이어갑니다."
         >
           <div className="grid gap-2 text-sm text-[#5f6784]">
             <div className="rounded-[1.5rem] bg-[#fff9ec] px-4 py-3">

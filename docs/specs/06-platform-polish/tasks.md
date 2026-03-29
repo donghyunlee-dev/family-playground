@@ -10,6 +10,7 @@ In Progress
 - [ ] Fix blocking or high-severity bugs.
 - [x] Improve loading, error, and empty states.
 - [x] Refresh the visual language for a family-friendly Korean UI.
+- [ ] Rework the public storefront and protected account header toward the updated Google Play-style direction.
 - [x] Run targeted verification for the refreshed web app.
 - [ ] Write final completion summary and commit/push.
 
@@ -29,3 +30,4 @@ In Progress
 - Added `ui-regression-checklist.md` so route layout and styling regressions are checked continuously during development.
 - this phase started early for UX cleanup, but it must be revisited after Phases 03 through 05 are implemented and verified
 - current high-severity stability bug: users can still lose the expected post-login route when entering protected room flows, so auth/session behavior must be stabilized before polish can be considered complete
+- current in-flight polish work: the top account area and public catalog sections are being restyled around a brighter Google Play-like storefront structure

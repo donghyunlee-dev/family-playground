@@ -15,6 +15,8 @@ Current focus:
 - remove remaining English copy from core user-facing routes
 - verify that login remains reachable while game slots stay intentionally empty
 - collapse the public entry flow so `/` shows the game catalog immediately and authentication happens in-place
+- redesign the account header and home sections toward a Google Play-like storefront rhythm
+- keep the game hero, introduction, and list areas visually separated for faster scanning
 
 ## Implementation Order
 
@@ -37,6 +39,7 @@ Current focus:
 - use `ui-regression-checklist.md` after every UI-affecting change
 - `pnpm --filter @family-playground/web lint`
 - `pnpm --filter @family-playground/web typecheck`
+- manual visual pass on the public home header, hero, and game-list hierarchy
 
 ## Exit Criteria
 

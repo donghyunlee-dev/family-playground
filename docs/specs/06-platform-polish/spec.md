@@ -11,6 +11,8 @@ This phase covers final quality improvements before considering the MVP complete
 - prefer colorful sections, clear spacing, and easy-to-scan copy over dense dashboard layouts
 - use Korean across the main user-facing routes unless a technical identifier must remain as-is
 - ensure buttons and interactive states preserve readable contrast in hover and active states
+- use a Google Play-inspired storefront direction on the public catalog and account header without copying branding assets
+- keep the hero section, game-introduction section, and game-list section visually distinct and easy to scan
 - resolve bugs from earlier phases
 - improve performance where needed
 - ensure documentation reflects the implemented platform

@@ -54,7 +54,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             {room.gameTitle}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#4d5c7a] md:mt-4 md:leading-7">
-            가족이 모이면 여기서 바로 시작합니다.
+            혼자 먼저 들어와도 바로 시작할 수 있고, 가족이 이어서 합류할 수 있습니다.
           </p>
           <div className="mt-4 grid gap-2 md:mt-6 md:grid-cols-2 md:gap-3">
             <div className="rounded-[1.6rem] bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
@@ -94,7 +94,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
               현재 세션: {room.currentSessionId ?? "아직 시작 전"}
             </div>
             <div className="rounded-[1.5rem] bg-[#fff9ec] px-4 py-3">
-              시작 조건: 최소 {room.minPlayers}명이 방에 있어야 합니다
+              시작 조건: 최소 {room.minPlayers}명부터 바로 시작할 수 있습니다
             </div>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 md:mt-6 md:flex md:flex-wrap md:gap-3">

@@ -14,10 +14,13 @@ This phase covers the product hub features after the platform foundation.
 - player presence
 - authenticated protected navigation
 - family-only access enforcement
-- stable session restoration between visits
+- stable session restoration between visits within a 24-hour login window
+- authenticated sessions older than 24 hours must be invalidated and sent back through login
 - one active room per game
 - visible room-created indicators in the game catalog
 - no multi-room participation for a single user
+- a waiting room host may start the game alone when the game supports single-player entry
+- all launchable games must cap room size at 4 players
 
 ## UI Requirements
 
@@ -27,6 +30,7 @@ This phase covers the product hub features after the platform foundation.
 - `/room/{room_id}` shows room status, players, and host controls
 - `/profile` shows player information and recent matches
 - the public landing and protected shell should feel like a curated App Store-style product surface rather than a plain dashboard
+- the top account area should expose avatar, identity, and session actions in a polished store-style header
 
 ## Data Requirements
 

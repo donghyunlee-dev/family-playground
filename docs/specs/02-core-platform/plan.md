@@ -14,6 +14,9 @@ Current adjustment:
 - expose game and room visibility before login
 - trigger Google OAuth only when an unauthenticated user tries to start or join a flow
 - return authenticated users to `/` with session and profile state already restored
+- enforce a 24-hour maximum authenticated session age before forcing sign-out
+- allow single-player room start for games configured with `min_players = 1`
+- normalize launchable room capacity to a 4-player maximum
 
 ## Implementation Order
 
@@ -34,9 +37,12 @@ Current adjustment:
 - route rendering tests or manual route verification
 - room creation and join smoke tests
 - authenticated navigation checks
+- expired-session redirect checks
+- single-player room start checks
 
 ## Exit Criteria
 
 - lobby, game catalog, room entry, and profile views exist
 - users can create and join rooms
 - waiting-room player lists are visible
+- sessions older than 24 hours are rejected
